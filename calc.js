@@ -94,11 +94,11 @@ function updateCalculator(){
   const mBe = $('markerBe'), lBe = $('labelBe'), mSell = $('markerSell'), lSell = $('labelSell');
   mBe.style.left = bePct + '%';
   lBe.style.left = bePct + '%';
-  lBe.textContent = '損益兩平 ' + sel.breakeven.toFixed(2);
+  lBe.innerHTML = '損益兩平 ' + sel.breakeven.toFixed(2) + ' 元<span class="lbl-note">超過才賺錢，低於就賠錢</span>';
 
   mSell.style.left = sellPct + '%';
   lSell.style.left = sellPct + '%';
-  lSell.textContent = '賣出價 ' + sellPrice.toFixed(2);
+  lSell.textContent = '賣出價 ' + sellPrice.toFixed(2) + ' 元';
   const isProfit = sellPrice >= sel.breakeven;
   mSell.classList.toggle('loss', !isProfit);
   lSell.classList.toggle('profit', isProfit);

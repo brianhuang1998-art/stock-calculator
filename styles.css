@@ -276,7 +276,7 @@ label{
   height:10px;
   border-radius:999px;
   background:linear-gradient(to right, var(--loss-soft) 0%, var(--loss-soft) var(--be-pct), var(--accent-soft) var(--be-pct), var(--accent-soft) 100%);
-  margin:34px 0 26px;
+  margin:48px 0 26px;
 }
 .marker{
   position:absolute;top:50%;transform:translate(-50%,-50%);
@@ -295,10 +295,17 @@ label{
   font-weight:600;
   color:var(--text-muted);
 }
-.marker-label.be-label{top:-26px;color:var(--navy);}
+.marker-label.be-label{top:-40px;color:var(--navy);text-align:center;}
 .marker-label.sell-label{top:16px;}
 .marker-label.sell-label.profit{color:var(--accent-strong);}
 .marker-label.sell-label.loss{color:var(--loss);}
+.marker-label .lbl-note{
+  display:block;
+  margin-top:2px;
+  font-size:9.5px;
+  font-weight:500;
+  color:var(--text-muted);
+}
 
 .insight{
   font-size:13.5px;

@@ -156,30 +156,6 @@
     font-size:12px;color:var(--text-muted);pointer-events:none;
   }
 
-  .seg{
-    display:flex;
-    border:1.5px solid var(--border);
-    border-radius:10px;
-    overflow:hidden;
-  }
-  .seg button{
-    flex:1;
-    border:none;
-    background:var(--surface);
-    color:var(--text-muted);
-    padding:9px 10px;
-    font-size:13px;
-    font-weight:500;
-    font-family:inherit;
-    cursor:pointer;
-    transition:all .15s ease;
-  }
-  .seg button.active{
-    background:var(--accent);
-    color:#fff;
-  }
-  .seg button:not(:last-child){border-right:1.5px solid var(--border);}
-
   .tiles{
     display:grid;
     grid-template-columns:repeat(3,1fr);
@@ -309,16 +285,16 @@
 
 <div class="topbar">
   <span class="dot"></span>
-  <span class="brand">台股工具箱</span>
+  <span class="brand">Brian工具箱</span>
   <span class="sep">/</span>
   <span class="crumb">交易損益試算</span>
 </div>
 <div class="subbar">
-  <span>🏠 首頁</span><span>›</span><span>台股工具</span><span>›</span><b>損益試算機</b>
+  <span>🏠 首頁</span><span>›</span><span>Brain工具</span><span>›</span><b>損益試算機</b>
 </div>
 
 <main>
-  <h1>台股交易損益試算</h1>
+  <h1>台股ETF及個股交易損益試算</h1>
   <p class="subtitle">輸入買賣價格，即時計算手續費、證交稅、淨損益與損益兩平點</p>
 
   <div class="tabs">
@@ -364,13 +340,6 @@
             <div class="input-wrap">
               <input type="number" id="minFee" inputmode="numeric" step="1" value="20">
               <span class="unit">元</span>
-            </div>
-          </div>
-          <div>
-            <label>顯示重點交易別</label>
-            <div class="seg">
-              <button data-mode="normal" class="active" id="segNormal">一般交易</button>
-              <button data-mode="day" id="segDay">現股當沖</button>
             </div>
           </div>
         </div>
@@ -583,11 +552,10 @@
   function setMode(mode){
     selectedMode = mode;
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
-    document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
     update();
   }
 
-  document.querySelectorAll('.tab, .seg button').forEach(btn=>{
+  document.querySelectorAll('.tab').forEach(btn=>{
     btn.addEventListener('click', ()=> setMode(btn.dataset.mode));
   });
 

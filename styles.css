@@ -1,4 +1,5 @@
 :root{
+  --font-main:"Times New Roman", Times, "標楷體", "DFKai-SB", "BiauKai", "Kaiti TC", "Kaiti SC", "KaiTi", serif;
   --bg:#ffffff;
   --surface:#f3faf6;
   --surface-2:#eaf8f0;
@@ -19,9 +20,9 @@ body{
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font-family:"Noto Sans TC","Helvetica Neue",Arial,sans-serif;
+  font-family:var(--font-main);
 }
-.mono{font-family:"JetBrains Mono","Noto Sans TC",monospace;font-variant-numeric:tabular-nums;}
+.mono{font-family:var(--font-main);font-variant-numeric:tabular-nums;}
 
 .topbar{
   background:var(--navy);
@@ -136,7 +137,7 @@ label{
   border:1.5px solid var(--border);
   border-radius:10px;
   font-size:15px;
-  font-family:"JetBrains Mono","Noto Sans TC",monospace;
+  font-family:var(--font-main);
   background:var(--surface);
   color:var(--text);
   outline:none;

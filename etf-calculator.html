@@ -192,7 +192,7 @@
     custom: { normal: 0.1, day: 0.15, note: '主動式／新掛牌ETF（如 00981A）分類與稅率請自行向券商或公開說明書確認，此處僅為預設值，可手動修改。' }
   };
 
-  initCalculator(ETF_PRESETS.equity);
+  initCalculator({ taxNormal: ETF_PRESETS.equity.normal, taxDay: ETF_PRESETS.equity.day, note: ETF_PRESETS.equity.note });
 
   document.getElementById('etfType').addEventListener('change', function(){
     const p = ETF_PRESETS[this.value];

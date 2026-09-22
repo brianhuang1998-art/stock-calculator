@@ -227,6 +227,14 @@ label{
 .tile.loss .v{color:var(--loss);}
 .tile.wide{grid-column:span 3;}
 @media (max-width:640px){ .tile.wide{grid-column:span 2;} }
+.pnl-compare{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:4px;
+}
+@media (max-width:480px){ .pnl-compare{grid-template-columns:1fr;} }
+.pnl-item-label{font-size:11px;color:var(--text-muted);margin-bottom:4px;}
 
 .compare-grid{
   display:grid;

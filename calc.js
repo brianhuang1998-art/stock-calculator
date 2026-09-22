@@ -60,7 +60,7 @@ function updateCalculator(){
   const buyPrice = parseFloat($('buyPrice').value);
   const sellPrice = parseFloat($('sellPrice').value);
   const shares = parseInt($('shares').value, 10);
-  const feeDiscount = parseFloat($('feeDiscount').value);
+  const feeDiscount = parseFloat($('feeDiscount').value) / 10;
   const minFee = parseInt($('minFee').value, 10);
   const taxNormalPct = parseFloat($('taxNormalPct').value);
   const taxDayPct = parseFloat($('taxDayPct').value);
@@ -84,13 +84,20 @@ function updateCalculator(){
   $('cardDay').classList.toggle('selected', selectedMode === 'day');
 
   const sel = selectedMode === 'normal' ? rNormal : rDay;
+  const selTaxRate = (selectedMode === 'normal' ? taxNormalPct : taxDayPct) / 100;
+  const selFull = calculateTrade(buyPrice, sellPrice, shares, selTaxRate, 1.0, minFee);
+
   $('sumPnlLabel').textContent = selectedMode === 'normal' ? '一般交易' : '現股當沖';
   $('sumGross').textContent = fmtSigned(sel.grossProfit) + ' 元';
   $('sumCost').textContent = fmtInt(sel.totalCost) + ' 元';
   $('sumRoi').textContent = (sel.roiPct >= 0 ? '+' : '') + sel.roiPct.toFixed(2) + '%';
+
+  $('sumFeeDiscountLabel').textContent = $('feeDiscount').value;
   $('sumPnl').innerHTML = fmtSigned(sel.netPnl) + ' <small>元</small>';
   $('sumPnl').style.color = sel.netPnl >= 0 ? 'var(--accent-strong)' : 'var(--loss)';
-  $('sumPnlTile').className = 'tile wide ' + (sel.netPnl >= 0 ? 'profit' : 'loss');
+
+  $('sumPnlFull').innerHTML = fmtSigned(selFull.netPnl) + ' <small>元</small>';
+  $('sumPnlFull').style.color = selFull.netPnl >= 0 ? 'var(--accent-strong)' : 'var(--loss)';
 
   const lo = Math.min(buyPrice, sel.breakeven, sellPrice) * 0.985;
   const hi = Math.max(buyPrice, sel.breakeven, sellPrice) * 1.015;

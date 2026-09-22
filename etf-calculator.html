@@ -72,7 +72,7 @@
           <div>
             <label for="feeDiscount">手續費折數</label>
             <div class="input-wrap">
-              <input type="number" id="feeDiscount" inputmode="decimal" step="0.0001" value="0.1425" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <input type="number" id="feeDiscount" inputmode="decimal" step="0.001" value="1.425" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">折</span>
             </div>
           </div>
@@ -117,7 +117,16 @@
           </div>
           <div class="tile wide" id="sumPnlTile">
             <div class="k">淨損益（<span id="sumPnlLabel">一般交易</span>）</div>
-            <div class="v mono" id="sumPnl">--</div>
+            <div class="pnl-compare">
+              <div class="pnl-item">
+                <div class="pnl-item-label">手續費原價（10 折）</div>
+                <div class="v mono" id="sumPnlFull">--</div>
+              </div>
+              <div class="pnl-item">
+                <div class="pnl-item-label">目前 <span id="sumFeeDiscountLabel">10</span> 折</div>
+                <div class="v mono" id="sumPnl">--</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -176,7 +185,7 @@
           </div>
         </div>
         <div class="foot-note">
-          手續費 = 成交金額 × 0.1425% × 折數，未達低消以低消計，小數點無條件捨去。損益兩平價為使賣出淨得等於買進總成本的最低賣價。選擇「ETF 類型」會自動帶入對應稅率，仍可手動修改「證交稅率」欄位覆蓋。主動式／新掛牌代號（如 00981A）分類尚不確定時，請自行查證後調整稅率。
+          手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，例如輸入 6 代表 6 折、10 代表原價無折扣；未達低消以低消計，小數點無條件捨去。損益兩平價為使賣出淨得等於買進總成本的最低賣價。選擇「ETF 類型」會自動帶入對應稅率，仍可手動修改「證交稅率」欄位覆蓋。主動式／新掛牌代號（如 00981A）分類尚不確定時，請自行查證後調整稅率。
         </div>
       </div>
     </div>

@@ -131,9 +131,18 @@ function updateCalculator(){
   } else {
     html += `<p>以手續費原價計算（${modeName}），賣出價 <strong>${sellPrice.toFixed(2)}</strong> 元低於損益兩平價 <strong>${selFull.breakeven.toFixed(2)}</strong> 元，預估虧損 <strong class="neg">${fmtSigned(selFull.netPnl)}</strong> 元。</p>`;
   }
+  const pnlDiff = rDayFull.netPnl - rNormalFull.netPnl;
+  let compareLine;
+  if(pnlDiff === 0){
+    compareLine = '目前一般交易與現股當沖稅率相同，兩者淨損益一致。';
+  } else if(pnlDiff > 0){
+    compareLine = `現股當沖稅率較低，同樣價差下淨損益較一般交易多約 <strong>${fmtInt(pnlDiff)}</strong> 元。`;
+  } else {
+    compareLine = `現股當沖稅率較高，同樣價差下淨損益較一般交易少約 <strong>${fmtInt(-pnlDiff)}</strong> 元。`;
+  }
   html += `<ul>
     <li>賣出價需再變動 <strong class="${diff>=0?'':'neg'}">${diff>=0?'+':''}${diffPct.toFixed(2)}%</strong> 才會落在兩平點。</li>
-    <li>現股當沖稅率較低，同樣價差下淨損益較一般交易多約 <strong>${fmtInt(rDayFull.netPnl - rNormalFull.netPnl)}</strong> 元。</li>
+    <li>${compareLine}</li>
   </ul>`;
   $('insightBody').innerHTML = html;
 }

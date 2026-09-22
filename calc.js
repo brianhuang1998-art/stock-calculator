@@ -89,9 +89,9 @@ function updateCalculator(){
   const selFull = selectedMode === 'normal' ? rNormalFull : rDayFull;
 
   $('sumPnlLabel').textContent = selectedMode === 'normal' ? '一般交易' : '現股當沖';
-  $('sumGross').textContent = fmtSigned(sel.grossProfit) + ' 元';
-  $('sumCost').textContent = fmtInt(sel.totalCost) + ' 元';
-  $('sumRoi').textContent = (sel.roiPct >= 0 ? '+' : '') + sel.roiPct.toFixed(2) + '%';
+  $('sumGross').textContent = fmtSigned(selFull.grossProfit) + ' 元';
+  $('sumCost').textContent = fmtInt(selFull.totalCost) + ' 元';
+  $('sumRoi').textContent = (selFull.roiPct >= 0 ? '+' : '') + selFull.roiPct.toFixed(2) + '%';
 
   $('sumFeeDiscountLabel').textContent = $('feeDiscount').value;
   $('sumPnl').innerHTML = fmtSigned(sel.netPnl) + ' <small>元</small>';

@@ -153,18 +153,22 @@ label{
 }
 .input-wrap select{
   width:100%;
-  padding:10px 12px;
+  padding:10px 36px 10px 12px;
   border:1.5px solid var(--border);
   border-radius:10px;
   font-size:13.5px;
   font-family:inherit;
-  background:var(--surface);
+  background-color:var(--surface);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2364768a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:14px;
   color:var(--text);
   outline:none;
   appearance:none;
-  transition:border-color .15s ease, background .15s ease;
+  transition:border-color .15s ease, background-color .15s ease;
 }
-.input-wrap select:focus{border-color:var(--accent);background:#fff;}
+.input-wrap select:focus{border-color:var(--accent);background-color:#fff;}
 
 .seg{
   display:flex;

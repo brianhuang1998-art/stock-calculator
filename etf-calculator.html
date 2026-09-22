@@ -25,7 +25,7 @@
 
   <div class="tabs">
     <button class="tab active" data-mode="normal" id="tabNormal">一般交易（稅率 <span id="tabNormalRate">0.1</span>%）</button>
-    <button class="tab" data-mode="day" id="tabDay">現股當沖（稅率 <span id="tabDayRate">0.15</span>%）</button>
+    <button class="tab" data-mode="day" id="tabDay">現股當沖（稅率 <span id="tabDayRate">0.1</span>%）</button>
   </div>
 
   <div class="layout">
@@ -93,7 +93,7 @@
           <div>
             <label for="taxDayPct">現股當沖證交稅率</label>
             <div class="input-wrap">
-              <input type="number" id="taxDayPct" inputmode="decimal" step="0.01" value="0.15" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <input type="number" id="taxDayPct" inputmode="decimal" step="0.01" value="0.1" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">%</span>
             </div>
           </div>
@@ -148,7 +148,7 @@
             <div id="detailNormal"></div>
           </div>
           <div class="result-card" id="cardDay">
-            <div class="rc-title">現股當沖 <span class="badge" id="badgeDay">稅率 0.15%</span></div>
+            <div class="rc-title">現股當沖 <span class="badge" id="badgeDay">稅率 0.1%</span></div>
             <div id="detailDay"></div>
           </div>
         </div>
@@ -177,7 +177,7 @@
           </div>
           <div class="rate-item">
             <span class="rk">股票型ETF：現股當沖證交稅</span>
-            <span class="rv">0.15%</span>
+            <span class="rv">0.1%</span>
           </div>
           <div class="rate-item">
             <span class="rk">債券型ETF：證交稅</span>
@@ -195,9 +195,9 @@
 <script src="calc.js"></script>
 <script>
   const ETF_PRESETS = {
-    equity: { normal: 0.1, day: 0.15, note: '股票型ETF（國內／國外成分股，如 0050、006208）：一般交易稅率 0.1%，現股當沖稅率 0.15%。' },
-    bond:   { normal: 0,   day: 0,    note: '債券型ETF（如 00679B、00751B）：證交稅全免。' },
-    custom: { normal: 0.1, day: 0.15, note: '主動式／新掛牌ETF（如 00981A）分類與稅率請自行向券商或公開說明書確認，此處僅為預設值，可手動修改。' }
+    equity: { normal: 0.1, day: 0.1, note: '股票型ETF（國內／國外成分股，如 0050、006208）：一般交易稅率 0.1%，現股當沖稅率 0.1%。' },
+    bond:   { normal: 0,   day: 0,   note: '債券型ETF（如 00679B、00751B）：證交稅全免。' },
+    custom: { normal: 0.1, day: 0.1, note: '主動式／新掛牌ETF（如 00981A）分類與稅率請自行向券商或公開說明書確認，此處僅為預設值，可手動修改。' }
   };
 
   const savedEtfType = loadStored('etfType');

@@ -100,6 +100,10 @@ function updateCalculator(){
   $('sumPnlFull').innerHTML = fmtSigned(selFull.netPnl) + ' <small>元</small>';
   $('sumPnlFull').style.color = selFull.netPnl >= 0 ? 'var(--accent-strong)' : 'var(--loss)';
 
+  const pnlSavings = sel.netPnl - selFull.netPnl;
+  $('sumPnlDiff').innerHTML = fmtSigned(pnlSavings) + ' <small>元</small>';
+  $('sumPnlDiff').style.color = pnlSavings >= 0 ? 'var(--accent-strong)' : 'var(--loss)';
+
   const lo = Math.min(buyPrice, selFull.breakeven, sellPrice) * 0.985;
   const hi = Math.max(buyPrice, selFull.breakeven, sellPrice) * 1.015;
   const span = Math.max(hi - lo, 0.01);

@@ -140,8 +140,11 @@ function updateCalculator(){
   } else {
     compareLine = `現股當沖稅率較高，同樣價差下淨損益較一般交易少約 <strong>${fmtInt(-pnlDiff)}</strong> 元。`;
   }
+  const moveLine = diff >= 0
+    ? `賣出價目前領先損益兩平價 <strong>${diffPct.toFixed(2)}%</strong>，可承受賣出價下跌到這個幅度內仍不會虧錢。`
+    : `賣出價需再上漲 <strong class="neg">${Math.abs(diffPct).toFixed(2)}%</strong> 才會到達損益兩平點。`;
   html += `<ul>
-    <li>賣出價需再變動 <strong class="${diff>=0?'':'neg'}">${diff>=0?'+':''}${diffPct.toFixed(2)}%</strong> 才會落在兩平點。</li>
+    <li>${moveLine}</li>
     <li>${compareLine}</li>
   </ul>`;
   $('insightBody').innerHTML = html;

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMDBlNmEwIi8+Cjx0ZXh0IHg9IjMyIiB5PSI0OSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD4KPC9zdmc+Cg==">
+<title>目標%數試算</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .price-card{
+    max-width:360px;
+    margin:0 auto 24px;
+    text-align:center;
+  }
+  .price-card label{text-align:center;}
+  .price-card .input-wrap input{
+    text-align:center;
+    font-size:24px;
+    font-weight:700;
+    padding:14px 40px;
+  }
+  .pct-list{display:flex;flex-direction:column;gap:0;}
+  .pct-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:9px 2px;
+    border-bottom:1px solid var(--border);
+    font-size:13.5px;
+  }
+  .pct-row:last-child{border-bottom:none;}
+  .pct-row .pk{color:var(--text-muted);}
+  .pct-row .pv{font-weight:700;color:var(--navy);}
+  .pct-row.down .pv{color:var(--loss);}
+  .pct-row.up .pv{color:var(--accent-strong);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span>
+  <span class="brand">Brian工作室</span>
+  <span class="sep">/</span>
+  <span class="crumb">目標%數試算</span>
+</div>
+<div class="subbar">
+  <a href="index.html">🏠 首頁</a><span>›</span><a href="brian-tools.html">Brian工具</a><span>›</span><b>目標%數試算</b>
+</div>
+
+<main>
+  <h1>目標價格試算</h1>
+  <p class="subtitle">輸入價格，即時換算漲跌幅各百分比對應的目標價</p>
+
+  <div class="card price-card">
+    <h2 style="justify-content:center;">輸入價格</h2>
+    <div class="input-wrap">
+      <input type="number" id="basePrice" inputmode="decimal" step="0.01" value="100"
+        onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+      <span class="unit">元</span>
+    </div>
+  </div>
+
+  <div class="compare-grid">
+    <div class="card">
+      <h2>下跌 % 對應價格</h2>
+      <div class="pct-list" id="downList"></div>
+    </div>
+    <div class="card">
+      <h2>上漲 % 對應價格</h2>
+      <div class="pct-list" id="upList"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const PERCENTS = [1,2,3,4,5,6,7,8,9,10,15,20,25,30];
+  const STORAGE_KEY = 'pnlCalc:' + location.pathname + ':basePrice';
+
+  function loadStored(){
+    try { return localStorage.getItem(STORAGE_KEY); } catch(e){ return null; }
+  }
+  function saveStored(v){
+    try { localStorage.setItem(STORAGE_KEY, v); } catch(e){}
+  }
+
+  function renderList(el, direction){
+    el.innerHTML = PERCENTS.map(p => {
+      const base = parseFloat($('basePrice').value);
+      const price = direction === 'up' ? base * (1 + p / 100) : base * (1 - p / 100);
+      return `<div class="pct-row ${direction}"><span class="pk">${direction === 'up' ? '+' : '-'}${p}%</span><span class="pv">${price.toFixed(2)} 元</span></div>`;
+    }).join('');
+  }
+
+  function update(){
+    const base = parseFloat($('basePrice').value);
+    if(!isFinite(base) || base <= 0){
+      $('downList').innerHTML = '';
+      $('upList').innerHTML = '';
+      return;
+    }
+    renderList($('downList'), 'down');
+    renderList($('upList'), 'up');
+  }
+
+  const saved = loadStored();
+  if(saved !== null) $('basePrice').value = saved;
+
+  $('basePrice').addEventListener('input', function(){
+    saveStored(this.value);
+    update();
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>

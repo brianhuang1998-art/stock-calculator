@@ -3,6 +3,16 @@ const $ = id => document.getElementById(id);
 const fmtInt = n => Math.round(n).toLocaleString('zh-TW');
 const fmtSigned = n => (n > 0 ? '+' : '') + fmtInt(n);
 
+const STORAGE_PREFIX = 'pnlCalc:' + location.pathname + ':';
+function loadStored(key){
+  try { return localStorage.getItem(STORAGE_PREFIX + key); } catch(e){ return null; }
+}
+function saveStored(key, value){
+  try { localStorage.setItem(STORAGE_PREFIX + key, value); } catch(e){}
+}
+
+const FIELD_IDS = ['buyPrice','sellPrice','shares','feeDiscount','minFee','taxNormalPct','taxDayPct'];
+
 let selectedMode = 'normal';
 
 function calcFee(amount, feeDiscount, minFee){
@@ -129,16 +139,41 @@ function setMode(mode){
 function applyTaxPreset(normal, day, note){
   $('taxNormalPct').value = normal;
   $('taxDayPct').value = day;
+  saveStored('taxNormalPct', normal);
+  saveStored('taxDayPct', day);
   if(note !== undefined && $('assetNote')) $('assetNote').textContent = note;
   updateCalculator();
 }
 
 function initCalculator(opts){
-  ['buyPrice','sellPrice','shares','feeDiscount','minFee','taxNormalPct','taxDayPct'].forEach(id=>{
-    $(id).addEventListener('input', updateCalculator);
+  const hadSavedTax = loadStored('taxNormalPct') !== null;
+
+  FIELD_IDS.forEach(id=>{
+    const saved = loadStored(id);
+    if(saved !== null) $(id).value = saved;
+    $(id).addEventListener('input', ()=>{
+      saveStored(id, $(id).value);
+      updateCalculator();
+    });
   });
+
   document.querySelectorAll('.tab').forEach(btn=>{
-    btn.addEventListener('click', ()=> setMode(btn.dataset.mode));
+    btn.addEventListener('click', ()=>{
+      saveStored('mode', btn.dataset.mode);
+      setMode(btn.dataset.mode);
+    });
   });
-  applyTaxPreset(opts.taxNormal, opts.taxDay, opts.note);
+
+  const savedMode = loadStored('mode');
+  if(savedMode === 'normal' || savedMode === 'day'){
+    selectedMode = savedMode;
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.mode===savedMode));
+  }
+
+  if(hadSavedTax){
+    if(opts.note !== undefined && $('assetNote')) $('assetNote').textContent = opts.note;
+    updateCalculator();
+  } else {
+    applyTaxPreset(opts.taxNormal, opts.taxDay, opts.note);
+  }
 }

@@ -238,8 +238,8 @@ label{
 .pnl-item-label{font-size:11px;color:var(--text-muted);margin-bottom:4px;}
 #sumPnlFull, #sumPnl{font-size:24px;}
 #sumPnlDiff{font-size:16px;}
-#sumPnlTile .k{font-size:28px;}
-#pnlFullLabel, #pnlCurrentLabel{font-size:24px;}
+#sumPnlTile .k{font-size:22px;}
+#pnlFullLabel, #pnlCurrentLabel{font-size:20px;}
 
 .compare-grid{
   display:grid;

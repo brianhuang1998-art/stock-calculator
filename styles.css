@@ -236,6 +236,7 @@ label{
 @media (max-width:640px){ .pnl-compare{grid-template-columns:1fr 1fr;} }
 @media (max-width:480px){ .pnl-compare{grid-template-columns:1fr;} }
 .pnl-item-label{font-size:11px;color:var(--text-muted);margin-bottom:4px;}
+#sumPnlFull, #sumPnl{font-size:24px;}
 #sumPnlDiff{font-size:16px;}
 
 .compare-grid{

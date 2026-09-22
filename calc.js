@@ -76,16 +76,17 @@ function updateCalculator(){
 
   const rNormal = calculateTrade(buyPrice, sellPrice, shares, taxNormalPct / 100, feeDiscount, minFee);
   const rDay = calculateTrade(buyPrice, sellPrice, shares, taxDayPct / 100, feeDiscount, minFee);
+  const rNormalFull = calculateTrade(buyPrice, sellPrice, shares, taxNormalPct / 100, 1.0, minFee);
+  const rDayFull = calculateTrade(buyPrice, sellPrice, shares, taxDayPct / 100, 1.0, minFee);
 
-  renderDetail($('detailNormal'), rNormal);
-  renderDetail($('detailDay'), rDay);
+  renderDetail($('detailNormal'), rNormalFull);
+  renderDetail($('detailDay'), rDayFull);
 
   $('cardNormal').classList.toggle('selected', selectedMode === 'normal');
   $('cardDay').classList.toggle('selected', selectedMode === 'day');
 
   const sel = selectedMode === 'normal' ? rNormal : rDay;
-  const selTaxRate = (selectedMode === 'normal' ? taxNormalPct : taxDayPct) / 100;
-  const selFull = calculateTrade(buyPrice, sellPrice, shares, selTaxRate, 1.0, minFee);
+  const selFull = selectedMode === 'normal' ? rNormalFull : rDayFull;
 
   $('sumPnlLabel').textContent = selectedMode === 'normal' ? '一般交易' : '現股當沖';
   $('sumGross').textContent = fmtSigned(sel.grossProfit) + ' 元';
@@ -99,40 +100,40 @@ function updateCalculator(){
   $('sumPnlFull').innerHTML = fmtSigned(selFull.netPnl) + ' <small>元</small>';
   $('sumPnlFull').style.color = selFull.netPnl >= 0 ? 'var(--accent-strong)' : 'var(--loss)';
 
-  const lo = Math.min(buyPrice, sel.breakeven, sellPrice) * 0.985;
-  const hi = Math.max(buyPrice, sel.breakeven, sellPrice) * 1.015;
+  const lo = Math.min(buyPrice, selFull.breakeven, sellPrice) * 0.985;
+  const hi = Math.max(buyPrice, selFull.breakeven, sellPrice) * 1.015;
   const span = Math.max(hi - lo, 0.01);
   const pct = v => Math.min(100, Math.max(0, ((v - lo) / span) * 100));
 
-  const bePct = pct(sel.breakeven);
+  const bePct = pct(selFull.breakeven);
   const sellPct = pct(sellPrice);
   $('gaugeTrack').style.setProperty('--be-pct', bePct + '%');
 
   const mBe = $('markerBe'), lBe = $('labelBe'), mSell = $('markerSell'), lSell = $('labelSell');
   mBe.style.left = bePct + '%';
   lBe.style.left = bePct + '%';
-  lBe.innerHTML = '損益兩平 ' + sel.breakeven.toFixed(2) + ' 元<span class="lbl-note">（超過才賺錢，低於就賠錢。）</span>';
+  lBe.innerHTML = '損益兩平 ' + selFull.breakeven.toFixed(2) + ' 元<span class="lbl-note">（手續費原價・超過才賺錢，低於就賠錢。）</span>';
 
   mSell.style.left = sellPct + '%';
   lSell.style.left = sellPct + '%';
   lSell.textContent = '賣出價 ' + sellPrice.toFixed(2) + ' 元';
-  const isProfit = sellPrice >= sel.breakeven;
+  const isProfit = sellPrice >= selFull.breakeven;
   mSell.classList.toggle('loss', !isProfit);
   lSell.classList.toggle('profit', isProfit);
   lSell.classList.toggle('loss', !isProfit);
 
-  const diff = sellPrice - sel.breakeven;
-  const diffPct = (diff / sel.breakeven) * 100;
+  const diff = sellPrice - selFull.breakeven;
+  const diffPct = (diff / selFull.breakeven) * 100;
   const modeName = selectedMode === 'normal' ? '一般交易' : '現股當沖';
   let html = '';
-  if(sel.netPnl >= 0){
-    html += `<p>以目前設定（${modeName}），賣出價 <strong>${sellPrice.toFixed(2)}</strong> 元高於損益兩平價 <strong>${sel.breakeven.toFixed(2)}</strong> 元，預估可獲利 <strong>${fmtSigned(sel.netPnl)}</strong> 元。</p>`;
+  if(selFull.netPnl >= 0){
+    html += `<p>以手續費原價計算（${modeName}），賣出價 <strong>${sellPrice.toFixed(2)}</strong> 元高於損益兩平價 <strong>${selFull.breakeven.toFixed(2)}</strong> 元，預估可獲利 <strong>${fmtSigned(selFull.netPnl)}</strong> 元。</p>`;
   } else {
-    html += `<p>以目前設定（${modeName}），賣出價 <strong>${sellPrice.toFixed(2)}</strong> 元低於損益兩平價 <strong>${sel.breakeven.toFixed(2)}</strong> 元，預估虧損 <strong class="neg">${fmtSigned(sel.netPnl)}</strong> 元。</p>`;
+    html += `<p>以手續費原價計算（${modeName}），賣出價 <strong>${sellPrice.toFixed(2)}</strong> 元低於損益兩平價 <strong>${selFull.breakeven.toFixed(2)}</strong> 元，預估虧損 <strong class="neg">${fmtSigned(selFull.netPnl)}</strong> 元。</p>`;
   }
   html += `<ul>
     <li>賣出價需再變動 <strong class="${diff>=0?'':'neg'}">${diff>=0?'+':''}${diffPct.toFixed(2)}%</strong> 才會落在兩平點。</li>
-    <li>現股當沖稅率較低，同樣價差下淨損益較一般交易多約 <strong>${fmtInt(rDay.netPnl - rNormal.netPnl)}</strong> 元。</li>
+    <li>現股當沖稅率較低，同樣價差下淨損益較一般交易多約 <strong>${fmtInt(rDayFull.netPnl - rNormalFull.netPnl)}</strong> 元。</li>
   </ul>`;
   $('insightBody').innerHTML = html;
 }

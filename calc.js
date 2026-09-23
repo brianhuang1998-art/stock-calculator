@@ -113,13 +113,24 @@ function updateCalculator(){
   const sellPct = pct(sellPrice);
   $('gaugeTrack').style.setProperty('--be-pct', bePct + '%');
 
+  function positionLabel(el, p){
+    el.style.left = p + '%';
+    if(p < 12){
+      el.style.transform = 'translateX(0%)';
+    } else if(p > 88){
+      el.style.transform = 'translateX(-100%)';
+    } else {
+      el.style.transform = 'translateX(-50%)';
+    }
+  }
+
   const mBe = $('markerBe'), lBe = $('labelBe'), mSell = $('markerSell'), lSell = $('labelSell');
   mBe.style.left = bePct + '%';
-  lBe.style.left = bePct + '%';
+  positionLabel(lBe, bePct);
   lBe.innerHTML = '損益兩平 ' + selFull.breakeven.toFixed(2) + ' 元<span class="lbl-note">（手續費原價・超過才賺錢，低於就賠錢。）</span>';
 
   mSell.style.left = sellPct + '%';
-  lSell.style.left = sellPct + '%';
+  positionLabel(lSell, sellPct);
   lSell.textContent = '賣出價 ' + sellPrice.toFixed(2) + ' 元';
   const isProfit = sellPrice >= selFull.breakeven;
   mSell.classList.toggle('loss', !isProfit);

@@ -165,6 +165,53 @@ function updateCalculator(){
   $('insightBody').innerHTML = html;
 }
 
+function buildResultText(){
+  const modeName = selectedMode === 'normal' ? '一般交易' : '現股當沖';
+  const breakevenText = $('labelBe').textContent.split('（')[0].replace('損益兩平', '').trim();
+  return [
+    '【損益試算結果】',
+    `買進價：${$('buyPrice').value} 元　賣出價：${$('sellPrice').value} 元　股數：${$('shares').value} 股`,
+    `交易別：${modeName}`,
+    `帳面毛利：${$('sumGross').textContent}`,
+    `總交易成本（原價）：${$('sumCost').textContent}`,
+    `報酬率 ROI（原價）：${$('sumRoi').textContent}`,
+    `淨損益（手續費原價）：${$('sumPnlFull').textContent}`,
+    `淨損益（目前 ${$('feeDiscount').value} 折）：${$('sumPnl').textContent}`,
+    `折扣省下差價：${$('sumPnlDiff').textContent}`,
+    `損益兩平價（原價）：${breakevenText}`
+  ].join('\n');
+}
+
+function fallbackCopy(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch(e){}
+  document.body.removeChild(ta);
+  done();
+}
+
+function copyResult(btn){
+  const text = buildResultText();
+  const originalText = btn.textContent;
+  const done = () => {
+    btn.textContent = '已複製 ✓';
+    btn.classList.add('copied');
+    setTimeout(()=>{
+      btn.textContent = originalText;
+      btn.classList.remove('copied');
+    }, 1500);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+
 function setMode(mode){
   selectedMode = mode;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
@@ -198,6 +245,11 @@ function initCalculator(opts){
       setMode(btn.dataset.mode);
     });
   });
+
+  const copyBtn = $('copyResultBtn');
+  if(copyBtn){
+    copyBtn.addEventListener('click', ()=> copyResult(copyBtn));
+  }
 
   const savedMode = loadStored('mode');
   if(savedMode === 'normal' || savedMode === 'day'){

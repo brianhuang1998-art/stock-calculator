@@ -171,7 +171,8 @@ function buildResultText(){
     '【損益試算結果】',
     `買進價：${$('buyPrice').value} 元　賣出價：${$('sellPrice').value} 元　股數：${$('shares').value} 股`,
     `交易別：${modeName}　淨損益（手續費原價）：${$('sumPnlFull').textContent}`,
-    `淨損益（目前 ${$('feeDiscount').value} 折）：${$('sumPnl').textContent}`
+    `淨損益（目前 ${$('feeDiscount').value} 折）：${$('sumPnl').textContent}`,
+    `折扣省下差價：${$('sumPnlDiff').textContent}`
   ].join('\n');
 }
 

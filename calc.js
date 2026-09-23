@@ -127,7 +127,7 @@ function updateCalculator(){
   const mBe = $('markerBe'), lBe = $('labelBe'), mSell = $('markerSell'), lSell = $('labelSell');
   mBe.style.left = bePct + '%';
   positionLabel(lBe, bePct);
-  lBe.innerHTML = '損益兩平 ' + selFull.breakeven.toFixed(2) + ' 元<span class="lbl-note">（手續費原價・超過才賺錢，低於就賠錢。）</span>';
+  lBe.innerHTML = '損益兩平 ' + selFull.breakeven.toFixed(2) + ' 元<span class="lbl-note">（手續費原價下・超過才賺錢，低於就賠錢。）</span>';
 
   mSell.style.left = sellPct + '%';
   positionLabel(lSell, sellPct);

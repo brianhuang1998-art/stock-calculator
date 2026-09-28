@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMDBlNmEwIi8+Cjx0ZXh0IHg9IjMyIiB5PSI0OSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD4KPC9zdmc+Cg==">
+<title>股息與現金流規劃 - Brian工具</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span>
+  <span class="brand">Brian工作室</span>
+  <span class="sep">/</span>
+  <span class="crumb">股息與現金流規劃</span>
+</div>
+<div class="subbar">
+  <a href="index.html">🏠 首頁</a><span>›</span><b>股息與現金流規劃</b>
+</div>
+
+<main>
+  <h1>股息與現金流規劃</h1>
+  <p class="subtitle">規劃配息現金流與稅務、退休提領的試算工具，陸續開發中</p>
+
+  <div class="tool-grid">
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">📅</div>
+      <h3>月配息現金流月曆</h3>
+      <p>輸入持股清單與配息月份，試算每個月預期能收到多少股息，適合存股族。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">🧾</div>
+      <h3>可扣抵稅額／股利所得稅試算</h3>
+      <p>台股股利併入綜所稅計算，判斷用哪種課稅方式較划算。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">🏖️</div>
+      <h3>退休提領試算（4%法則）</h3>
+      <p>輸入退休資產與提領率，估算能撐幾年、每月可提領多少。</p>
+    </div>
+  </div>
+</main>
+
+<button id="backToTop" aria-label="回到頂部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+(function(){
+  var btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', function(){
+    btn.classList.toggle('show', window.scrollY > 400);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMDBlNmEwIi8+Cjx0ZXh0IHg9IjMyIiB5PSI0OSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD4KPC9zdmc+Cg==">
+<title>估值與基本面分析 - Brian工具</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span>
+  <span class="brand">Brian工作室</span>
+  <span class="sep">/</span>
+  <span class="crumb">估值與基本面分析</span>
+</div>
+<div class="subbar">
+  <a href="index.html">🏠 首頁</a><span>›</span><b>估值與基本面分析</b>
+</div>
+
+<main>
+  <h1>估值與基本面分析</h1>
+  <p class="subtitle">評估股價合理性與獲利品質的分析工具，陸續開發中</p>
+
+  <div class="tool-grid">
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">🌊</div>
+      <h3>本益比／股價淨值比河流圖</h3>
+      <p>輸入歷史EPS或淨值與目前股價，畫出目前站在歷史區間的哪個百分位。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">💹</div>
+      <h3>股利折現模型（DDM）試算</h3>
+      <p>輸入股利、成長率、折現率，估算合理股價。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">📐</div>
+      <h3>DCF現金流折現試算</h3>
+      <p>輸入自由現金流與成長假設，估算內在價值，適合看現金流穩定的公司。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">🧩</div>
+      <h3>ROE杜邦分析拆解</h3>
+      <p>把ROE拆成淨利率×資產周轉率×財務槓桿，快速看出獲利品質來源。</p>
+    </div>
+  </div>
+</main>
+
+<button id="backToTop" aria-label="回到頂部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+(function(){
+  var btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', function(){
+    btn.classList.toggle('show', window.scrollY > 400);
+  });
+})();
+</script>
+</body>
+</html>

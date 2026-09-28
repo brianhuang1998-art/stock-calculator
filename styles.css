@@ -300,6 +300,10 @@ label{
   color:var(--accent-strong);
   font-weight:700;
 }
+.badge.muted{
+  background:var(--surface);
+  color:var(--text-muted);
+}
 .rc-row{
   display:flex;justify-content:space-between;
   font-size:13px;
@@ -404,6 +408,7 @@ label{
 @media (max-width:480px){ .tool-grid{grid-template-columns:1fr;} }
 
 .tool-card{
+  position:relative;
   display:block;
   background:#fff;
   border:1.5px solid var(--border);
@@ -413,6 +418,13 @@ label{
   color:var(--text);
   transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
+.tool-card.soon{opacity:.72;cursor:default;}
+.tool-card.soon:hover{
+  border-color:var(--border);
+  box-shadow:none;
+  transform:none;
+}
+.tool-card .badge.corner{position:absolute;top:16px;right:16px;}
 .tool-card:hover{
   border-color:var(--accent);
   box-shadow:0 10px 24px rgba(0,201,140,.14);

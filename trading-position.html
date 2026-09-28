@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMDBlNmEwIi8+Cjx0ZXh0IHg9IjMyIiB5PSI0OSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD4KPC9zdmc+Cg==">
+<title>交易與部位管理 - Brian工具</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span>
+  <span class="brand">Brian工作室</span>
+  <span class="sep">/</span>
+  <span class="crumb">交易與部位管理</span>
+</div>
+<div class="subbar">
+  <a href="index.html">🏠 首頁</a><span>›</span><b>交易與部位管理</b>
+</div>
+
+<main>
+  <h1>交易與部位管理</h1>
+  <p class="subtitle">幫助控制部位大小與交易紀律的試算工具，陸續開發中</p>
+
+  <div class="tool-grid">
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">📈</div>
+      <h3>定期定額複利試算</h3>
+      <p>輸入本金、每月扣款金額與預期年化報酬率，算出N年後累積資產與總報酬。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">🎯</div>
+      <h3>部位大小計算機</h3>
+      <p>輸入可承受虧損金額與停損點距離，反推該買幾張／幾股，控制單筆風險。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">⚖️</div>
+      <h3>加權平均成本試算</h3>
+      <p>分批買進時自動算出加權平均成本與目前損益。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">🛡️</div>
+      <h3>停損停利比試算</h3>
+      <p>輸入進場價、停損價、目標價，算出風險報酬比（R值），輔助判斷值不值得進場。</p>
+    </div>
+    <div class="tool-card soon">
+      <span class="badge muted corner">開發中</span>
+      <div class="icon">🔄</div>
+      <h3>再平衡試算</h3>
+      <p>輸入目前各資產（股/債/現金）金額與目標配置比例，算出該加碼或減碼多少才能回到目標比例。</p>
+    </div>
+  </div>
+</main>
+
+<button id="backToTop" aria-label="回到頂部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+(function(){
+  var btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', function(){
+    btn.classList.toggle('show', window.scrollY > 400);
+  });
+})();
+</script>
+</body>
+</html>

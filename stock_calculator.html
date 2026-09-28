@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMDBlNmEwIi8+Cjx0ZXh0IHg9IjMyIiB5PSI0OSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD4KPC9zdmc+Cg==">
-<title>ETF 試算</title>
+<title>個股試算</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -13,38 +13,25 @@
   <span class="dot"></span>
   <span class="brand">Brian工作室</span>
   <span class="sep">/</span>
-  <span class="crumb">ETF 試算</span>
+  <span class="crumb">個股試算</span>
 </div>
 <div class="subbar">
-  <a href="index.html">🏠 首頁</a><span>›</span><a href="tools.html">Brian工具</a><span>›</span><b>ETF 試算</b>
+  <a href="home_page.html">🏠 首頁</a><span>›</span><a href="tools.html">Brian工具</a><span>›</span><b>個股試算</b>
 </div>
 
 <main>
-  <h1>ETF 交易損益試算</h1>
+  <h1>個股交易損益試算</h1>
   <p class="subtitle">輸入買賣價格，即時計算手續費、證交稅、淨損益與損益兩平點</p>
 
   <div class="tabs">
-    <button class="tab active" data-mode="normal" id="tabNormal">一般交易（稅率 <span id="tabNormalRate">0.1</span>%）</button>
-    <button class="tab" data-mode="day" id="tabDay">現股當沖（稅率 <span id="tabDayRate">0.1</span>%）</button>
+    <button class="tab active" data-mode="normal" id="tabNormal">一般交易（稅率 <span id="tabNormalRate">0.3</span>%）</button>
+    <button class="tab" data-mode="day" id="tabDay">現股當沖（稅率 <span id="tabDayRate">0.15</span>%）</button>
   </div>
 
   <div class="layout">
     <div>
       <div class="card">
         <h2>交易參數</h2>
-
-        <div class="asset-row single">
-          <div>
-            <label for="etfType">ETF 類型</label>
-            <div class="input-wrap">
-              <select id="etfType">
-                <option value="equity">📈 股票型（國內／國外成分股，如 0050、006208）</option>
-                <option value="bond">💵 債券型（如 00679B、00751B）</option>
-                <option value="custom">⚙️ 主動式／其他（如 00981A，稅率請自行確認）</option>
-              </select>
-            </div>
-          </div>
-        </div>
         <p class="note-line" id="assetNote"></p>
 
         <div class="field-grid">
@@ -86,14 +73,14 @@
           <div>
             <label for="taxNormalPct">一般交易證交稅率</label>
             <div class="input-wrap">
-              <input type="number" id="taxNormalPct" inputmode="decimal" step="0.01" value="0.1" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <input type="number" id="taxNormalPct" inputmode="decimal" step="0.01" value="0.3" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">%</span>
             </div>
           </div>
           <div>
             <label for="taxDayPct">現股當沖證交稅率</label>
             <div class="input-wrap">
-              <input type="number" id="taxDayPct" inputmode="decimal" step="0.01" value="0.1" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <input type="number" id="taxDayPct" inputmode="decimal" step="0.01" value="0.15" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">%</span>
             </div>
           </div>
@@ -151,11 +138,11 @@
         <h2>一般交易 vs 現股當沖 比較</h2>
         <div class="compare-grid">
           <div class="result-card" id="cardNormal">
-            <div class="rc-title">一般交易 <span class="badge" id="badgeNormal">稅率 0.1%</span></div>
+            <div class="rc-title">一般交易 <span class="badge" id="badgeNormal">稅率 0.3%</span></div>
             <div id="detailNormal"></div>
           </div>
           <div class="result-card" id="cardDay">
-            <div class="rc-title">現股當沖 <span class="badge" id="badgeDay">稅率 0.1%</span></div>
+            <div class="rc-title">現股當沖 <span class="badge" id="badgeDay">稅率 0.15%</span></div>
             <div id="detailDay"></div>
           </div>
         </div>
@@ -172,27 +159,23 @@
       </div>
 
       <div class="card">
-        <h2>計算基準（台股ETF現制）</h2>
+        <h2>計算基準（台股個股現制）</h2>
         <div class="rate-list">
           <div class="rate-item">
             <span class="rk">券商手續費法定牌價</span>
             <span class="rv">0.1425%</span>
           </div>
           <div class="rate-item">
-            <span class="rk">股票型ETF：一般交易證交稅</span>
-            <span class="rv">0.1%</span>
+            <span class="rk">一般交易證交稅</span>
+            <span class="rv">0.3%</span>
           </div>
           <div class="rate-item">
-            <span class="rk">股票型ETF：現股當沖證交稅</span>
-            <span class="rv">0.1%</span>
-          </div>
-          <div class="rate-item">
-            <span class="rk">債券型ETF：證交稅</span>
-            <span class="rv">免稅</span>
+            <span class="rk">現股當沖證交稅</span>
+            <span class="rv">0.15%</span>
           </div>
         </div>
         <div class="foot-note">
-          手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，例如輸入 6 代表 6 折、10 代表原價無折扣；未達低消以低消計，小數點無條件捨去。損益兩平價為使賣出淨得等於買進總成本的最低賣價。選擇「ETF 類型」會自動帶入對應稅率，仍可手動修改「證交稅率」欄位覆蓋。主動式／新掛牌代號（如 00981A）分類尚不確定時，請自行查證後調整稅率。
+          手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，例如輸入 6 代表 6 折、10 代表原價無折扣；未達低消以低消計，小數點無條件捨去。損益兩平價為使賣出淨得等於買進總成本的最低賣價。「證交稅率」欄位可依實際情況手動調整。
         </div>
       </div>
     </div>
@@ -201,23 +184,7 @@
 
 <script src="calc.js"></script>
 <script>
-  const ETF_PRESETS = {
-    equity: { normal: 0.1, day: 0.1, note: '股票型ETF（國內／國外成分股，如 0050、006208）：一般交易稅率 0.1%，現股當沖稅率 0.1%。' },
-    bond:   { normal: 0,   day: 0,   note: '債券型ETF（如 00679B、00751B）：證交稅全免。' },
-    custom: { normal: 0.1, day: 0.1, note: '主動式／新掛牌ETF（如 00981A）分類與稅率請自行向券商或公開說明書確認，此處僅為預設值，可手動修改。' }
-  };
-
-  const savedEtfType = loadStored('etfType');
-  const initialType = (savedEtfType && ETF_PRESETS[savedEtfType]) ? savedEtfType : 'equity';
-  document.getElementById('etfType').value = initialType;
-
-  initCalculator({ taxNormal: ETF_PRESETS[initialType].normal, taxDay: ETF_PRESETS[initialType].day, note: ETF_PRESETS[initialType].note });
-
-  document.getElementById('etfType').addEventListener('change', function(){
-    saveStored('etfType', this.value);
-    const p = ETF_PRESETS[this.value];
-    applyTaxPreset(p.normal, p.day, p.note);
-  });
+  initCalculator({ taxNormal: 0.3, taxDay: 0.15, note: '個股：一般交易稅率 0.3%，現股當沖減半為 0.15%。' });
 </script>
 <button id="backToTop" aria-label="回到頂部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 <script>

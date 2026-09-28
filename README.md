@@ -8,7 +8,7 @@
 | 檔案 | 用途 |
 |---|---|
 | `index.html` | 首頁，網站入口，點卡片進入 Brian 工具列表 |
-| `brian-tools.html` | Brian 工具列表頁，列出目前提供的兩個試算工具 |
+| `tools.html` | Brian 工具列表頁，列出目前提供的兩個試算工具 |
 | `etf-calculator.html` | ETF 損益試算機。可選 ETF 類型（股票型／債券型／主動式），自動帶入對應證交稅率 |
 | `stock-calculator.html` | 個股損益試算機。稅率預設一般交易 0.3%、現股當沖 0.15% |
 | `styles.css` | 四個頁面共用的樣式（配色、版面、卡片、表單等），改版面風格只要改這一個檔案 |

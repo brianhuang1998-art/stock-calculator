@@ -418,7 +418,7 @@ label{
   box-shadow:0 10px 24px rgba(0,201,140,.14);
   transform:translateY(-2px);
 }
-.tool-card .icon{
+.tool-card .icon, .single-card .icon{
   width:40px;height:40px;
   border-radius:10px;
   background:var(--accent-soft);

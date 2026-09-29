@@ -32,6 +32,7 @@
   #pnlTile .k{font-size:18px;}
   #pnlTile .pnl-item-label{font-size:16px;}
   #sumMarket,#sumPnl,#sumRoi{font-size:26px;}
+  .input-wrap input:disabled{background:#eceff1;border-color:#dde3e7;color:#8a98a6;cursor:not-allowed;}
   #labelBe{top:auto;bottom:calc(100% + 10px);white-space:normal;width:max-content;max-width:100%;}
   .v.profit{color:var(--accent-strong);}
   .v.loss{color:var(--loss);}
@@ -122,9 +123,9 @@
             </div>
           </div>
           <div>
-            <label for="sellTaxPct">賣出證交稅率</label>
+            <label for="sellTaxPct">證交稅率</label>
             <div class="input-wrap">
-              <input type="number" id="sellTaxPct" inputmode="decimal" step="0.01" value="0.3" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <input type="number" id="sellTaxPct" inputmode="decimal" step="0.01" value="0.3" disabled onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">%</span>
             </div>
           </div>
@@ -228,7 +229,7 @@
           </div>
         </div>
         <div class="foot-note">
-          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本，報酬率也以淨損益計算；下方小字的帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）。「賣出證交稅率」選了商品類型後會自動帶入，也可以手動修改。
+          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本，報酬率也以淨損益計算；下方小字的帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）。「證交稅率」會依商品類型自動帶入；商品類型選「自訂」時才可以自己填寫。
         </div>
       </div>
 
@@ -354,19 +355,23 @@
     el.classList.toggle('loss', n < 0);
   }
 
+  // Float products like 500×2000×0.001425×0.28 come out as 398.99999999999994; the epsilon keeps floor() from dropping 1 元
+  function floorMoney(x){
+    return Math.floor(x + 1e-9);
+  }
   function calcFee(amount, feeDiscount, minFee){
-    return Math.max(minFee, Math.floor(amount * FEE_RATE * feeDiscount / 10));
+    return Math.max(minFee, floorMoney(amount * FEE_RATE * feeDiscount / 10));
   }
   function netSell(price, shares, feeDiscount, minFee, tax){
     const amount = price * shares;
-    return amount - calcFee(amount, feeDiscount, minFee) - Math.floor(amount * tax);
+    return amount - calcFee(amount, feeDiscount, minFee) - floorMoney(amount * tax);
   }
   function breakEvenPrice(cost, shares, feeDiscount, minFee, tax){
     const keep = 1 - FEE_RATE * feeDiscount / 10 - tax;
     if(keep <= 0) return null;
     const est = Math.max(cost / (shares * keep), (cost + minFee) / (shares * (1 - tax)));
     // floor() on fee/tax can make the true answer slightly below the estimate, so start a bit lower and step up by 0.01
-    let cents = Math.max(1, Math.floor((est - 3 / shares) * 100) - 1);
+    let cents = Math.max(1, Math.floor((est - 3 / (shares * keep)) * 100) - 1);
     while(netSell(cents / 100, shares, feeDiscount, minFee, tax) < cost) cents++;
     return cents / 100;
   }
@@ -379,8 +384,9 @@
     const items = [];
     items.push(`加權平均成本 <strong>${fmtPrice(d.avg)}</strong>，共 ${d.count} 筆、${d.shares.toLocaleString('zh-Hant-TW')} 股（約 ${(d.shares / 1000).toFixed(2)} 張）。`);
     if(d.count > 1){
-      const diff = d.avg - d.firstPrice;
-      items.push(`買進價從 ${d.minPrice.toFixed(2)} 到 ${d.maxPrice.toFixed(2)} 元；分批買進後，平均成本比第 1 筆買價${diff <= 0 ? '低' : '高'} ${Math.abs(diff).toFixed(2)} 元。`);
+      const diff = d.avgNoFee - d.firstPrice;
+      const cmp = Math.abs(diff) < 0.005 ? '跟第 1 筆買價相同' : `比第 1 筆買價${diff < 0 ? '低' : '高'} ${Math.abs(diff).toFixed(2)} 元`;
+      items.push(`買進價從 ${d.minPrice.toFixed(2)} 到 ${d.maxPrice.toFixed(2)} 元；分批買進後，平均成本（不含手續費）${cmp}。`);
     }
     if(d.bep !== null){
       items.push(`損益兩平價 <strong>${fmtPrice(d.bep)}</strong>，比平均成本高 ${(d.bep - d.avg).toFixed(2)} 元，這段差距就是賣出時的手續費與 ${d.taxPct}% 證交稅。`);
@@ -516,7 +522,7 @@
     const net = current > 0 ? netSell(current, totalShares, feeDiscount, minFee, tax) - totalCost : 0;
     const prices = rows.map(r => r.price);
     renderInsight({
-      avg, cost: totalCost, shares: totalShares, count: rows.length,
+      avg, avgNoFee: totalAmount / totalShares, cost: totalCost, shares: totalShares, count: rows.length,
       firstPrice: prices[0], minPrice: Math.min(...prices), maxPrice: Math.max(...prices),
       bep, current, net, taxPct
     });
@@ -546,15 +552,18 @@
   });
 
   ['currentPrice','feeDiscount','minFee'].forEach(f => $(f).addEventListener('input', update));
+  function syncTaxField(){
+    const preset = TAX_PRESETS[$('assetType').value];
+    if(preset !== undefined) $('sellTaxPct').value = preset;
+    $('sellTaxPct').disabled = preset !== undefined;
+  }
   $('assetType').addEventListener('change', function(){
-    if(TAX_PRESETS[this.value] !== undefined) $('sellTaxPct').value = TAX_PRESETS[this.value];
+    syncTaxField();
+    if(!$('sellTaxPct').disabled) $('sellTaxPct').focus();
     update();
   });
-  $('sellTaxPct').addEventListener('input', function(){
-    const match = Object.keys(TAX_PRESETS).find(k => parseFloat(TAX_PRESETS[k]) === parseFloat(this.value));
-    $('assetType').value = match || 'custom';
-    update();
-  });
+  $('sellTaxPct').addEventListener('input', update);
+  syncTaxField();
   window.addEventListener('resize', update);
   renderLots();
   update();

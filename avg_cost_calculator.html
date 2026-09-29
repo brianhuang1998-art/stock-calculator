@@ -29,9 +29,12 @@
   .lot-del[hidden]{display:block;visibility:hidden;}
   .lot-actions{margin-top:14px;}
   .tile .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
-  #pnlTile .k{font-size:18px;}
-  #pnlTile .pnl-item-label{font-size:16px;}
-  #sumMarket,#sumPnl,#sumRoi{font-size:26px;}
+  #pnlTile .k,#bepTile .k{font-size:18px;}
+  #pnlTile .pnl-item-label,#bepTile .pnl-item-label{font-size:16px;}
+  #sumMarket,#sumPnl,#sumRoi,#sumBep,#sumBepGap{font-size:26px;}
+  #sumBep{color:var(--navy);}
+  #bepTile .pnl-compare{grid-template-columns:1fr 1fr;}
+  @media (max-width:480px){ #bepTile .pnl-compare{grid-template-columns:1fr;} }
   .v.profit{color:var(--accent-strong);}
   .v.loss{color:var(--loss);}
   .table-wrap{overflow-x:auto;}
@@ -109,6 +112,24 @@
               <span class="unit">元</span>
             </div>
           </div>
+          <div>
+            <label for="assetType">商品類型</label>
+            <div class="input-wrap">
+              <select id="assetType">
+                <option value="stock">個股（證交稅 0.3%）</option>
+                <option value="etf">股票型 ETF（證交稅 0.1%）</option>
+                <option value="bond">債券型 ETF（免證交稅）</option>
+                <option value="custom">自訂</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="sellTaxPct">賣出證交稅率</label>
+            <div class="input-wrap">
+              <input type="number" id="sellTaxPct" inputmode="decimal" step="0.01" value="0.3" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <span class="unit">%</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -129,19 +150,33 @@
             <div class="sub" id="sumAvgNoFee"></div>
           </div>
           <div class="tile wide" id="pnlTile">
-            <div class="k">目前損益（未實現）</div>
+            <div class="k">目前損益（以現價全部賣出）</div>
             <div class="pnl-compare">
               <div class="pnl-item">
                 <div class="pnl-item-label">目前市值</div>
                 <div class="v mono" id="sumMarket">--</div>
               </div>
               <div class="pnl-item">
-                <div class="pnl-item-label">未實現損益</div>
+                <div class="pnl-item-label">淨損益（已扣賣出成本）</div>
                 <div class="v mono" id="sumPnl">--</div>
+                <div class="sub" id="sumPnlBook"></div>
               </div>
               <div class="pnl-item">
                 <div class="pnl-item-label">報酬率</div>
                 <div class="v mono" id="sumRoi">--</div>
+              </div>
+            </div>
+          </div>
+          <div class="tile wide" id="bepTile">
+            <div class="k">損益兩平（已扣賣出手續費與證交稅）</div>
+            <div class="pnl-compare">
+              <div class="pnl-item">
+                <div class="pnl-item-label">損益兩平價</div>
+                <div class="v mono" id="sumBep">--</div>
+              </div>
+              <div class="pnl-item">
+                <div class="pnl-item-label" id="bepGapLabel">現價距離兩平</div>
+                <div class="v mono" id="sumBepGap">--</div>
               </div>
             </div>
           </div>
@@ -179,19 +214,27 @@
       </div>
 
       <div class="card">
-        <h2>計算基準（台股個股現制）</h2>
+        <h2>計算基準（台股現制）</h2>
         <div class="rate-list">
           <div class="rate-item">
             <span class="rk">券商手續費法定牌價</span>
             <span class="rv">0.1425%</span>
           </div>
           <div class="rate-item">
-            <span class="rk">證交稅（一般交易，只在賣出時收）</span>
+            <span class="rk">個股證交稅（一般交易）</span>
             <span class="rv">0.3%</span>
+          </div>
+          <div class="rate-item">
+            <span class="rk">股票型 ETF 證交稅</span>
+            <span class="rv">0.1%</span>
+          </div>
+          <div class="rate-item">
+            <span class="rk">債券型 ETF 證交稅</span>
+            <span class="rv">免稅</span>
           </div>
         </div>
         <div class="foot-note">
-          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。未實現損益 = 目前股價 × 總股數 − 總買進成本，尚未扣除賣出手續費與證交稅；「回本賣價」則已扣除。證交稅以個股一般交易 0.3% 計，ETF 稅率較低，實際回本價會再低一些。
+          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本，報酬率也以淨損益計算；下方小字的帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）。「賣出證交稅率」選了商品類型後會自動帶入，也可以手動修改。
         </div>
       </div>
 
@@ -205,6 +248,7 @@
           <h3>2.為什麼跟券商 App 顯示的不一樣？</h3>
           <ul>
             <li>有些券商的均價不含手續費（可對照結果卡的小字）</li>
+            <li>券商顯示的「未實現損益」通常是帳面數字，沒扣賣出手續費與證交稅（可對照淨損益下方的小字）</li>
             <li>除權息（配股、配息）後，有些券商會調整成本</li>
             <li>本頁只處理買進，沒有處理中途賣出一部分的情況</li>
           </ul>
@@ -221,9 +265,9 @@
 (function(){
   const $ = id => document.getElementById(id);
   const FEE_RATE = 0.001425;
-  const SELL_TAX = 0.003;
+  const TAX_PRESETS = { stock: '0.3', etf: '0.1', bond: '0' };
   const STORAGE_KEY = 'avgCostCalc:' + location.pathname;
-  const FIELDS = ['currentPrice','feeDiscount','minFee'];
+  const FIELDS = ['currentPrice','feeDiscount','minFee','assetType','sellTaxPct'];
 
   let lots = [
     { price: '100', shares: '1000' },
@@ -319,17 +363,17 @@
   function calcFee(amount, feeDiscount, minFee){
     return Math.max(minFee, Math.floor(amount * FEE_RATE * feeDiscount / 10));
   }
-  function netSell(price, shares, feeDiscount, minFee){
+  function netSell(price, shares, feeDiscount, minFee, tax){
     const amount = price * shares;
-    return amount - calcFee(amount, feeDiscount, minFee) - Math.floor(amount * SELL_TAX);
+    return amount - calcFee(amount, feeDiscount, minFee) - Math.floor(amount * tax);
   }
-  function breakEvenPrice(cost, shares, feeDiscount, minFee){
-    const keep = 1 - FEE_RATE * feeDiscount / 10 - SELL_TAX;
+  function breakEvenPrice(cost, shares, feeDiscount, minFee, tax){
+    const keep = 1 - FEE_RATE * feeDiscount / 10 - tax;
     if(keep <= 0) return null;
-    const est = Math.max(cost / (shares * keep), (cost + minFee) / (shares * (1 - SELL_TAX)));
+    const est = Math.max(cost / (shares * keep), (cost + minFee) / (shares * (1 - tax)));
     // floor() on fee/tax can make the true answer slightly below the estimate, so start a bit lower and step up by 0.01
     let cents = Math.max(1, Math.floor((est - 3 / shares) * 100) - 1);
-    while(netSell(cents / 100, shares, feeDiscount, minFee) < cost) cents++;
+    while(netSell(cents / 100, shares, feeDiscount, minFee, tax) < cost) cents++;
     return cents / 100;
   }
 
@@ -345,18 +389,17 @@
       items.push(`買進價從 ${d.minPrice.toFixed(2)} 到 ${d.maxPrice.toFixed(2)} 元；分批買進後，平均成本比第 1 筆買價${diff <= 0 ? '低' : '高'} ${Math.abs(diff).toFixed(2)} 元。`);
     }
     if(d.bep !== null){
-      items.push(`回本賣價（已扣賣出手續費與 0.3% 證交稅）約 <strong>${fmtPrice(d.bep)}</strong>。`);
+      items.push(`損益兩平價 <strong>${fmtPrice(d.bep)}</strong>，比平均成本高 ${(d.bep - d.avg).toFixed(2)} 元，這段差距就是賣出時的手續費與 ${d.taxPct}% 證交稅。`);
     }
     if(d.current > 0){
       const gap = (d.current - d.avg) / d.avg * 100;
       items.push(`現價 ${fmtPrice(d.current)}，比平均成本${gap >= 0 ? '高' : '低'} <strong${gap < 0 ? ' class="neg"' : ''}>${Math.abs(gap).toFixed(2)}%</strong>。`);
       if(d.bep !== null){
-        const net = netSell(d.current, d.shares, d.feeDiscount, d.minFee) - d.cost;
-        if(net >= 0){
-          items.push(`以現價全部賣出，扣完所有成本後約 <strong>賺 ${fmtMoney(net)}</strong>。`);
+        if(d.net >= 0){
+          items.push(`以現價全部賣出，扣完所有成本後約 <strong>賺 ${fmtMoney(d.net)}</strong>。`);
         } else {
           const need = (d.bep - d.current) / d.current * 100;
-          items.push(`現價還要再漲 <strong class="neg">${need.toFixed(2)}%</strong> 才回本；以現價全部賣出約 <strong class="neg">賠 ${fmtMoney(-net)}</strong>。`);
+          items.push(`現價還要再漲 <strong class="neg">${need.toFixed(2)}%</strong> 才回本；以現價全部賣出約 <strong class="neg">賠 ${fmtMoney(-d.net)}</strong>。`);
         }
       }
     } else {
@@ -366,10 +409,12 @@
   }
 
   function resetPnl(){
-    ['sumMarket','sumPnl','sumRoi'].forEach(id => { $(id).textContent = '--'; setSign($(id), 0); });
+    ['sumMarket','sumPnl','sumRoi','sumBepGap'].forEach(id => { $(id).textContent = '--'; setSign($(id), 0); });
+    $('sumPnlBook').textContent = '';
+    $('bepGapLabel').textContent = '現價距離兩平';
   }
   function resetAll(){
-    ['sumShares','sumCost','sumAvg'].forEach(id => { $(id).textContent = '--'; });
+    ['sumShares','sumCost','sumAvg','sumBep'].forEach(id => { $(id).textContent = '--'; });
     $('sumAvgNoFee').textContent = '';
     $('lotBody').innerHTML = '';
     resetPnl();
@@ -381,7 +426,8 @@
 
     const feeDiscount = parseFloat($('feeDiscount').value);
     const minFee = parseFloat($('minFee').value);
-    if(!isFinite(feeDiscount) || feeDiscount < 0 || !isFinite(minFee) || minFee < 0){
+    const taxPct = parseFloat($('sellTaxPct').value);
+    if(!isFinite(feeDiscount) || feeDiscount < 0 || !isFinite(minFee) || minFee < 0 || !isFinite(taxPct) || taxPct < 0 || taxPct >= 100){
       resetAll();
       return;
     }
@@ -427,27 +473,43 @@
       </tr>
     `).join('');
 
+    const tax = taxPct / 100;
+    const bep = breakEvenPrice(totalCost, totalShares, feeDiscount, minFee, tax);
+    $('sumBep').textContent = bep === null ? '--' : fmtPrice(bep);
+
     const current = parseFloat($('currentPrice').value);
+    const net = current > 0 ? netSell(current, totalShares, feeDiscount, minFee, tax) - totalCost : 0;
     const prices = rows.map(r => r.price);
     renderInsight({
       avg, cost: totalCost, shares: totalShares, count: rows.length,
       firstPrice: prices[0], minPrice: Math.min(...prices), maxPrice: Math.max(...prices),
-      bep: breakEvenPrice(totalCost, totalShares, feeDiscount, minFee),
-      current, feeDiscount, minFee
+      bep, current, net, taxPct
     });
 
     if(!(current > 0)){
       resetPnl();
       return;
     }
+
+    if(bep !== null){
+      const above = current >= bep;
+      $('bepGapLabel').textContent = above ? '現價高於兩平' : '還要上漲';
+      $('sumBepGap').textContent = above
+        ? fmtPct((current - bep) / bep * 100)
+        : ((bep - current) / current * 100).toFixed(2) + '%';
+      setSign($('sumBepGap'), above ? 1 : -1);
+    } else {
+      $('sumBepGap').textContent = '--';
+      setSign($('sumBepGap'), 0);
+    }
     const market = current * totalShares;
-    const pnl = market - totalCost;
-    const roi = pnl / totalCost * 100;
+    const bookPnl = market - totalCost;
     $('sumMarket').textContent = fmtMoney(market);
-    $('sumPnl').textContent = (pnl > 0 ? '+' : '') + fmtMoney(pnl);
-    $('sumRoi').textContent = fmtPct(roi);
-    setSign($('sumPnl'), pnl);
-    setSign($('sumRoi'), pnl);
+    $('sumPnl').textContent = (net > 0 ? '+' : '') + fmtMoney(net);
+    $('sumPnlBook').textContent = '帳面：' + (bookPnl > 0 ? '+' : '') + fmtMoney(bookPnl) + '（未扣賣出成本）';
+    $('sumRoi').textContent = fmtPct(net / totalCost * 100);
+    setSign($('sumPnl'), net);
+    setSign($('sumRoi'), net);
   }
 
   $('addLot').addEventListener('click', () => {
@@ -458,7 +520,16 @@
     if(inputs.length) inputs[0].focus();
   });
 
-  FIELDS.forEach(f => $(f).addEventListener('input', update));
+  ['currentPrice','feeDiscount','minFee'].forEach(f => $(f).addEventListener('input', update));
+  $('assetType').addEventListener('change', function(){
+    if(TAX_PRESETS[this.value] !== undefined) $('sellTaxPct').value = TAX_PRESETS[this.value];
+    update();
+  });
+  $('sellTaxPct').addEventListener('input', function(){
+    const match = Object.keys(TAX_PRESETS).find(k => parseFloat(TAX_PRESETS[k]) === parseFloat(this.value));
+    $('assetType').value = match || 'custom';
+    update();
+  });
   renderLots();
   update();
 })();

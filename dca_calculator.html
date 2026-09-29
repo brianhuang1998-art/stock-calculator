@@ -28,6 +28,13 @@
   .dca-table tr:last-child td{border-bottom:none;}
   .dca-table td.gain-pos{color:var(--accent-strong);font-weight:600;}
   .dca-table td.gain-neg{color:var(--loss);font-weight:600;}
+  #sumGainTile .k{font-size:18px;}
+  #sumGainTile .pnl-compare{grid-template-columns:1fr 1fr;}
+  #sumGainTile .pnl-item-label{font-size:16px;}
+  #sumGain,#sumRoi{font-size:26px;}
+  .v.profit{color:var(--accent-strong);}
+  .v.loss{color:var(--loss);}
+  @media (max-width:480px){ #sumGainTile .pnl-compare{grid-template-columns:1fr;} }
   .assume h3{
     font-size:14px;
     color:var(--navy);
@@ -107,7 +114,7 @@
             <div class="k">期末預估資產</div>
             <div class="v mono" id="sumFinal">--</div>
           </div>
-          <div class="tile wide">
+          <div class="tile wide" id="sumGainTile">
             <div class="k">累積報酬</div>
             <div class="pnl-compare">
               <div class="pnl-item">
@@ -147,18 +154,22 @@
       <div class="card">
         <h2>計算假設</h2>
         <div class="insight assume">
-          <h3>1.什麼是定期定額？</h3>
-          <p>每個月固定拿一筆錢（例如 5,000 元）買同一檔基金或 ETF，不管當時漲跌都照買。好處是不用挑進場時機，時間拉長後能靠<strong>複利</strong>讓資產成長：前面賺到的報酬會繼續投入、再產生報酬。</p>
+          <h3>1.什麼是複利？</h3>
+          <p>賺到的報酬不領出來，而是留在帳戶裡跟本金一起繼續產生報酬，俗稱「利滾利」。</p>
+          <p>例如 100 萬、每年報酬 7%：第 1 年賺 7 萬變 107 萬；第 2 年是用 107 萬去賺 7%，賺 7.49 萬變 114.49 萬。10 年後約 <strong>197 萬</strong>，比每年只拿本金賺 7 萬（單利，10 年 170 萬）多約 27 萬，而且時間越長差距越大。</p>
 
-          <h3>2.月報酬率怎麼換算？</h3>
+          <h3>2.什麼是定期定額？</h3>
+          <p>每個月固定拿一筆錢（例如 5,000 元）買同一檔基金或 ETF，不管當時漲跌都照買。好處是不用挑進場時機，每筆扣款都會各自靠<strong>複利</strong>成長，時間拉得越長效果越明顯。</p>
+
+          <h3>3.月報酬率怎麼換算？</h3>
           <p>本頁把年化報酬率換算成「每月複利 12 次剛好等於年化」的月報酬率：</p>
           <p><span class="formula">月報酬率 = (1 + 年化報酬率)<sup>1/12</sup> − 1</span></p>
           <p>例如年化 7% → 每月約 0.565%。不少網站直接用 7% ÷ 12 ≈ 0.583%，但這樣一年實際會變成約 7.23%，算出來的結果會偏高。</p>
 
-          <h3>3.月初或月底扣款？</h3>
+          <h3>4.月初或月底扣款？</h3>
           <p>本頁假設<strong>月底扣款</strong>。月初扣款的錢會多滾一個月的報酬，結果會稍微高一點，所以月底扣款算出來比較保守。</p>
 
-          <h3>4.報酬率填多少？</h3>
+          <h3>5.報酬率填多少？</h3>
           <p>這是影響結果最大、也最不確定的參數，是你自己的假設，沒有人能保證。</p>
           <div class="rate-list">
             <div class="rate-item">
@@ -172,7 +183,7 @@
           </div>
           <p>建議多試幾個數字（例如 4%、6%、8%），看看結果差多少。</p>
 
-          <h3>5.一般沒算進去、但實際會影響結果的東西</h3>
+          <h3>6.一般沒算進去、但實際會影響結果的東西</h3>
           <ul>
             <li><strong class="neg">手續費、ETF 內扣管理費</strong>：每年大約吃掉 0.1–1% 報酬</li>
             <li><strong class="neg">通貨膨脹</strong>：20 年後的 100 萬，購買力比現在的 100 萬低</li>
@@ -214,6 +225,11 @@
     return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
   }
 
+  function setSign(el, n){
+    el.classList.toggle('profit', n > 0);
+    el.classList.toggle('loss', n < 0);
+  }
+
   function update(){
     saveStored();
 
@@ -227,6 +243,8 @@
       $('sumFinal').textContent = '--';
       $('sumGain').textContent = '--';
       $('sumRoi').textContent = '--';
+      setSign($('sumGain'), 0);
+      setSign($('sumRoi'), 0);
       $('yearlyBody').innerHTML = '';
       return;
     }
@@ -253,6 +271,8 @@
     $('sumFinal').textContent = fmtMoney(finalRow.assets);
     $('sumGain').textContent = fmtMoney(finalRow.gain);
     $('sumRoi').textContent = fmtPct(finalRow.roi);
+    setSign($('sumGain'), finalRow.gain);
+    setSign($('sumRoi'), finalRow.gain);
 
     $('yearlyBody').innerHTML = rows.map(r => `
       <tr>

@@ -1,4 +1,4 @@
-const FEE_RATE = 0.001425;
+// Page logic for the stock / ETF P&L calculators; the trading math lives in trade_math.js, which must be loaded first
 const $ = id => document.getElementById(id);
 const fmtInt = n => Math.round(n).toLocaleString('zh-TW');
 const fmtSigned = n => (n > 0 ? '+' : '') + fmtInt(n);
@@ -15,71 +15,7 @@ const FIELD_IDS = ['buyPrice','sellPrice','shares','feeDiscount','minFee','taxNo
 
 let selectedMode = 'normal';
 let tickType = 'stock';
-
-// Float products like 1000000×0.001425×0.28 come out as 398.99999999999994; the epsilon keeps floor() from dropping 1 元
-function floorMoney(x){
-  return Math.floor(x + 1e-9);
-}
-
-function calcFee(amount, feeDiscount, minFee){
-  const fee = floorMoney(amount * FEE_RATE * feeDiscount);
-  return Math.max(minFee, fee);
-}
-
-function netSellAt(cents, shares, feeDiscount, minFee, taxRate){
-  const amount = Math.round(cents / 100 * shares);
-  return amount - calcFee(amount, feeDiscount, minFee) - floorMoney(amount * taxRate);
-}
-
-// Lowest price (in 0.01 steps) whose net sale proceeds cover the buy cost; searching instead of a closed-form formula keeps the min fee and floor() rounding exact
-function breakevenPrice(cost, shares, feeDiscount, minFee, taxRate){
-  const keep = 1 - FEE_RATE * feeDiscount - taxRate;
-  if(keep <= 0) return null;
-  const est = Math.max(cost / (shares * keep), (cost + minFee) / (shares * (1 - taxRate)));
-  let cents = Math.max(1, Math.floor((est - 3 / (shares * keep)) * 100) - 1);
-  while(netSellAt(cents, shares, feeDiscount, minFee, taxRate) < cost) cents++;
-  return cents / 100;
-}
-
-function tickCents(cents){
-  if(tickType === 'etf') return cents < 5000 ? 1 : 5;
-  if(cents < 1000) return 1;
-  if(cents < 5000) return 5;
-  if(cents < 10000) return 10;
-  if(cents < 50000) return 50;
-  if(cents < 100000) return 100;
-  return 500;
-}
-
-function tradablePrice(breakeven, cost, shares, feeDiscount, minFee, taxRate){
-  let cents = Math.round(breakeven * 100);
-  const t = tickCents(cents);
-  cents = Math.ceil(cents / t) * t;
-  while(netSellAt(cents, shares, feeDiscount, minFee, taxRate) < cost) cents += tickCents(cents);
-  return cents / 100;
-}
-
-function calculateTrade(buyPrice, sellPrice, shares, taxRate, feeDiscount, minFee){
-  const buyAmount = Math.round(buyPrice * shares);
-  const sellAmount = Math.round(sellPrice * shares);
-  const grossProfit = sellAmount - buyAmount;
-
-  const buyFee = calcFee(buyAmount, feeDiscount, minFee);
-  const sellFee = calcFee(sellAmount, feeDiscount, minFee);
-  const tax = floorMoney(sellAmount * taxRate);
-
-  const totalCost = buyFee + sellFee + tax;
-  const netPnl = grossProfit - totalCost;
-  const roiPct = (netPnl / (buyAmount + buyFee)) * 100;
-
-  const breakeven = breakevenPrice(buyAmount + buyFee, shares, feeDiscount, minFee, taxRate);
-  const tradable = breakeven === null ? null : tradablePrice(breakeven, buyAmount + buyFee, shares, feeDiscount, minFee, taxRate);
-
-  return {
-    buyAmount, sellAmount, grossProfit, buyFee, sellFee, tax,
-    totalCost, netPnl, roiPct, breakeven, tradable
-  };
-}
+let hasResult = false;
 
 function renderDetail(el, r){
   el.innerHTML = `
@@ -97,6 +33,7 @@ function renderDetail(el, r){
 }
 
 function clearResults(){
+  hasResult = false;
   ['sumGross','sumCost','sumRoi'].forEach(id => { $(id).textContent = '--'; });
   ['sumPnl','sumPnlFull','sumPnlDiff'].forEach(id => { $(id).textContent = '--'; $(id).style.color = ''; });
   $('detailNormal').innerHTML = '';
@@ -127,14 +64,15 @@ function updateCalculator(){
   $('badgeNormal').textContent = '稅率 ' + taxNormalPct + '%';
   $('badgeDay').textContent = '稅率 ' + taxDayPct + '%';
 
-  const rNormal = calculateTrade(buyPrice, sellPrice, shares, taxNormalPct / 100, feeDiscount, minFee);
-  const rDay = calculateTrade(buyPrice, sellPrice, shares, taxDayPct / 100, feeDiscount, minFee);
-  const rNormalFull = calculateTrade(buyPrice, sellPrice, shares, taxNormalPct / 100, 1.0, minFee);
-  const rDayFull = calculateTrade(buyPrice, sellPrice, shares, taxDayPct / 100, 1.0, minFee);
+  const rNormal = calculateTrade(buyPrice, sellPrice, shares, taxNormalPct / 100, feeDiscount, minFee, tickType);
+  const rDay = calculateTrade(buyPrice, sellPrice, shares, taxDayPct / 100, feeDiscount, minFee, tickType);
+  const rNormalFull = calculateTrade(buyPrice, sellPrice, shares, taxNormalPct / 100, 1.0, minFee, tickType);
+  const rDayFull = calculateTrade(buyPrice, sellPrice, shares, taxDayPct / 100, 1.0, minFee, tickType);
   if([rNormal, rDay, rNormalFull, rDayFull].some(r => r.breakeven === null)){
     clearResults();
     return;
   }
+  hasResult = true;
   $('gaugeTrack').parentElement.hidden = false;
 
   renderDetail($('detailNormal'), rNormalFull);
@@ -252,6 +190,7 @@ function fallbackCopy(text, done){
 }
 
 function copyResult(btn){
+  if(!hasResult) return;
   const text = buildResultText();
   const originalText = btn.textContent;
   const done = () => {

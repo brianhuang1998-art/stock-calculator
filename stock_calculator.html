@@ -105,7 +105,7 @@
             <div class="v mono" id="sumCost">--</div>
           </div>
           <div class="tile">
-            <div class="k">報酬率 ROI</div>
+            <div class="k">報酬率 ROI（手續費原價）</div>
             <div class="v mono" id="sumRoi">--</div>
           </div>
           <div class="tile wide" id="sumPnlTile">
@@ -208,6 +208,7 @@
   </div>
 </main>
 
+<script src="trade_math.js"></script>
 <script src="calc.js"></script>
 <script>
   initCalculator({ taxNormal: 0.3, taxDay: 0.15, note: '個股：一般交易稅率 0.3%，現股當沖減半為 0.15%。', tickType: 'stock' });

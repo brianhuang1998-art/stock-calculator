@@ -41,6 +41,9 @@
   }
   .pct-row.down .pv{color:var(--loss);}
   .pct-row.up .pv{color:var(--accent-strong);}
+  .pct-row .exact{display:block;font-size:11px;font-weight:500;color:var(--text-muted);}
+  .type-wrap{margin-top:12px;}
+  .type-wrap select{text-align:center;}
 </style>
 </head>
 <body>
@@ -54,8 +57,8 @@
 </div>
 
 <main>
-  <h1>目標價格試算</h1>
-  <p class="subtitle">輸入價格，即時換算漲跌幅各百分比對應的目標價</p>
+  <h1>目標%數試算</h1>
+  <p class="subtitle">輸入價格，即時換算漲跌幅各百分比對應的目標價，並調整成可以掛單的價格</p>
 
   <div class="card price-card">
     <h2 style="justify-content:center;">輸入價格</h2>
@@ -63,6 +66,12 @@
       <input type="number" id="basePrice" inputmode="decimal" step="0.01" value="100"
         onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
       <span class="unit">元</span>
+    </div>
+    <div class="input-wrap type-wrap">
+      <select id="tickType" aria-label="商品類型">
+        <option value="stock">個股（升降單位依價格 0.01～5 元）</option>
+        <option value="etf">ETF（未滿 50 元 0.01、50 元以上 0.05）</option>
+      </select>
     </div>
   </div>
 
@@ -76,26 +85,37 @@
       <div class="pct-list" id="upList"></div>
     </div>
   </div>
+
+  <div class="card">
+    <div class="foot-note" style="margin-top:0;">
+      每一列的大字是依升降單位四捨五入到最接近、可以實際掛單的價格，下方小字是未調整的精確價格。個股升降單位：未滿 10 元 0.01、10～50 元 0.05、50～100 元 0.1、100～500 元 0.5、500～1,000 元 1、1,000 元以上 5；ETF：未滿 50 元 0.01、50 元以上 0.05。
+    </div>
+  </div>
 </main>
 
+<script src="trade_math.js"></script>
 <script>
 (function(){
   const $ = id => document.getElementById(id);
   const PERCENTS = [1,2,3,4,5,6,7,8,9,10,15,20,21,22,23,24,25,30];
   const STORAGE_KEY = 'pnlCalc:' + location.pathname + ':basePrice';
+  const TYPE_KEY = 'pnlCalc:' + location.pathname + ':tickType';
 
-  function loadStored(){
-    try { return localStorage.getItem(STORAGE_KEY); } catch(e){ return null; }
+  function loadStored(key){
+    try { return localStorage.getItem(key); } catch(e){ return null; }
   }
-  function saveStored(v){
-    try { localStorage.setItem(STORAGE_KEY, v); } catch(e){}
+  function saveStored(key, v){
+    try { localStorage.setItem(key, v); } catch(e){}
   }
 
   function renderList(el, direction){
+    const base = parseFloat($('basePrice').value);
+    const type = $('tickType').value;
     el.innerHTML = PERCENTS.map(p => {
-      const base = parseFloat($('basePrice').value);
-      const price = direction === 'up' ? base * (1 + p / 100) : base * (1 - p / 100);
-      return `<div class="pct-row ${direction}"><span class="pk">${direction === 'up' ? '+' : '-'}${p}%</span><span class="pv">${price.toFixed(2)} 元</span></div>`;
+      const exact = direction === 'up' ? base * (1 + p / 100) : base * (1 - p / 100);
+      const tradable = nearestTickPrice(exact, type);
+      const exactNote = Math.abs(tradable - exact) >= 0.005 ? `<span class="exact">精確 ${exact.toFixed(2)}</span>` : '';
+      return `<div class="pct-row ${direction}"><span class="pk">${direction === 'up' ? '+' : '-'}${p}%</span><span class="pv">${tradable.toFixed(2)} 元${exactNote}</span></div>`;
     }).join('');
   }
 
@@ -110,11 +130,17 @@
     renderList($('upList'), 'up');
   }
 
-  const saved = loadStored();
+  const saved = loadStored(STORAGE_KEY);
   if(saved !== null) $('basePrice').value = saved;
+  const savedType = loadStored(TYPE_KEY);
+  if(savedType === 'stock' || savedType === 'etf') $('tickType').value = savedType;
 
   $('basePrice').addEventListener('input', function(){
-    saveStored(this.value);
+    saveStored(STORAGE_KEY, this.value);
+    update();
+  });
+  $('tickType').addEventListener('change', function(){
+    saveStored(TYPE_KEY, this.value);
     update();
   });
 

@@ -28,6 +28,7 @@
   .dca-table tr:last-child td{border-bottom:none;}
   .dca-table td.gain-pos{color:var(--accent-strong);font-weight:600;}
   .dca-table td.gain-neg{color:var(--loss);font-weight:600;}
+  .input-error{margin:14px 0 0;font-size:13px;color:var(--loss);}
   #sumGainTile .k{font-size:18px;}
   #sumGainTile .pnl-compare{grid-template-columns:1fr 1fr;}
   #sumGainTile .pnl-item-label{font-size:16px;}
@@ -101,6 +102,7 @@
             </div>
           </div>
         </div>
+        <p class="input-error" id="inputError" hidden></p>
       </div>
 
       <div class="card">
@@ -221,8 +223,20 @@
   function fmtMoney(n){
     return Math.round(n).toLocaleString('zh-Hant-TW') + ' 元';
   }
+  function fmtSigned(n){
+    return (Math.round(n) > 0 ? '+' : '') + fmtMoney(n);
+  }
   function fmtPct(n){
     return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+  }
+  const MAX_YEARS = 100;
+
+  function validate(principal, monthly, annualRatePct, years){
+    if(principal < 0 || monthly < 0) return '期初本金與每月扣款金額不可為負數。';
+    if(!isFinite(annualRatePct)) return '請輸入預期年化報酬率。';
+    if(annualRatePct < -100) return '年化報酬率不可低於 -100%（最多就是虧光本金）。';
+    if(!Number.isInteger(years) || years < 1 || years > MAX_YEARS) return `投資年數請輸入 1～${MAX_YEARS} 的整數。`;
+    return '';
   }
 
   function setSign(el, n){
@@ -236,9 +250,12 @@
     const principal = parseFloat($('principal').value) || 0;
     const monthly = parseFloat($('monthlyContribution').value) || 0;
     const annualRatePct = parseFloat($('annualRate').value);
-    const years = parseInt($('years').value, 10);
+    const years = Number($('years').value);
 
-    if(!isFinite(annualRatePct) || !isFinite(years) || years <= 0){
+    const error = validate(principal, monthly, annualRatePct, years);
+    $('inputError').textContent = error;
+    $('inputError').hidden = !error;
+    if(error){
       $('sumInvested').textContent = '--';
       $('sumFinal').textContent = '--';
       $('sumGain').textContent = '--';
@@ -269,7 +286,7 @@
     const finalRow = rows[rows.length - 1];
     $('sumInvested').textContent = fmtMoney(finalRow.invested);
     $('sumFinal').textContent = fmtMoney(finalRow.assets);
-    $('sumGain').textContent = fmtMoney(finalRow.gain);
+    $('sumGain').textContent = fmtSigned(finalRow.gain);
     $('sumRoi').textContent = fmtPct(finalRow.roi);
     setSign($('sumGain'), finalRow.gain);
     setSign($('sumRoi'), finalRow.gain);
@@ -279,7 +296,7 @@
         <td>第 ${r.year} 年</td>
         <td>${fmtMoney(r.invested)}</td>
         <td>${fmtMoney(r.assets)}</td>
-        <td class="${r.gain >= 0 ? 'gain-pos' : 'gain-neg'}">${fmtMoney(r.gain)}</td>
+        <td class="${r.gain >= 0 ? 'gain-pos' : 'gain-neg'}">${fmtSigned(r.gain)}</td>
         <td class="${r.gain >= 0 ? 'gain-pos' : 'gain-neg'}">${fmtPct(r.roi)}</td>
       </tr>
     `).join('');

@@ -139,7 +139,7 @@
             <div class="v mono" id="sumShares">--</div>
           </div>
           <div class="tile">
-            <div class="k">總買進成本（含手續費）</div>
+            <div class="k">總買進成本（含手續費原價）</div>
             <div class="v mono" id="sumCost">--</div>
           </div>
           <div class="tile">
@@ -156,7 +156,7 @@
             <div class="v mono" id="sumPnlBook">--</div>
           </div>
           <div class="tile">
-            <div class="k">報酬率 ROI（目前 <span class="fee-discount-label">2.8</span> 折）</div>
+            <div class="k">報酬率 ROI（手續費原價）</div>
             <div class="v mono" id="sumRoi">--</div>
           </div>
           <div class="tile wide" id="sumPnlTile">
@@ -198,7 +198,7 @@
                 <th>買進價</th>
                 <th>股數</th>
                 <th>成交金額</th>
-                <th>手續費</th>
+                <th>手續費（原價）</th>
                 <th>買進成本</th>
                 <th>累積平均成本</th>
               </tr>
@@ -239,7 +239,7 @@
           </div>
         </div>
         <div class="foot-note">
-          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本，報酬率也以目前折數的淨損益計算；「手續費原價」欄把買進與賣出手續費都改用 10 折重算，「折扣省下差價」= 目前折數淨損益 − 原價淨損益。帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）；可掛單價則依升降單位往上調整：個股未滿 10 元一跳 0.01、10～50 元 0.05、50～100 元 0.1、100～500 元 0.5、500～1,000 元 1、1,000 元以上 5；ETF 未滿 50 元 0.01、50 元以上 0.05。商品類型選「自訂」時不顯示可掛單價。「證交稅率」會依商品類型自動帶入；商品類型選「自訂」時才可以自己填寫。
+          除了「淨損益」的「目前 X 折」欄以外，本頁所有數字（總買進成本、加權平均成本、逐筆明細、帳面損益、報酬率、損益兩平價）都以<strong>手續費原價（10 折）</strong>計算，跟個股／ETF 試算頁的基準一致。每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本；「目前 X 折」欄把買進與賣出手續費都改用你的折數重算，「折扣省下差價」= 目前折數淨損益 − 原價淨損益。帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）；可掛單價則依升降單位往上調整：個股未滿 10 元一跳 0.01、10～50 元 0.05、50～100 元 0.1、100～500 元 0.5、500～1,000 元 1、1,000 元以上 5；ETF 未滿 50 元 0.01、50 元以上 0.05。商品類型選「自訂」時不顯示可掛單價。「證交稅率」會依商品類型自動帶入；商品類型選「自訂」時才可以自己填寫。
         </div>
       </div>
 
@@ -274,11 +274,12 @@
   </div>
 </main>
 
+<script src="trade_math.js"></script>
 <script>
 (function(){
   const $ = id => document.getElementById(id);
-  const FEE_RATE = 0.001425;
   const TAX_PRESETS = { stock: '0.3', etf: '0.1', bond: '0' };
+  const TICK_TYPES = { stock: 'stock', etf: 'etf', bond: 'etf' };
   const STORAGE_KEY = 'avgCostCalc:' + location.pathname;
   const FIELDS = ['currentPrice','feeDiscount','minFee','assetType','sellTaxPct'];
 
@@ -377,46 +378,6 @@
     el.classList.toggle('loss', n < 0);
   }
 
-  // Float products like 500×2000×0.001425×0.28 come out as 398.99999999999994; the epsilon keeps floor() from dropping 1 元
-  function floorMoney(x){
-    return Math.floor(x + 1e-9);
-  }
-  function calcFee(amount, feeDiscount, minFee){
-    return Math.max(minFee, floorMoney(amount * FEE_RATE * feeDiscount / 10));
-  }
-  function netSell(price, shares, feeDiscount, minFee, tax){
-    const amount = price * shares;
-    return amount - calcFee(amount, feeDiscount, minFee) - floorMoney(amount * tax);
-  }
-  function breakEvenPrice(cost, shares, feeDiscount, minFee, tax){
-    const keep = 1 - FEE_RATE * feeDiscount / 10 - tax;
-    if(keep <= 0) return null;
-    const est = Math.max(cost / (shares * keep), (cost + minFee) / (shares * (1 - tax)));
-    // floor() on fee/tax can make the true answer slightly below the estimate, so start a bit lower and step up by 0.01
-    let cents = Math.max(1, Math.floor((est - 3 / (shares * keep)) * 100) - 1);
-    while(netSell(cents / 100, shares, feeDiscount, minFee, tax) < cost) cents++;
-    return cents / 100;
-  }
-
-  function tickCents(cents, type){
-    if(type === 'etf' || type === 'bond') return cents < 5000 ? 1 : 5;
-    if(cents < 1000) return 1;
-    if(cents < 5000) return 5;
-    if(cents < 10000) return 10;
-    if(cents < 50000) return 50;
-    if(cents < 100000) return 100;
-    return 500;
-  }
-  function tradablePrice(bep, type, cost, shares, feeDiscount, minFee, tax){
-    if(bep === null || !(type in TAX_PRESETS)) return null;
-    let cents = Math.round(bep * 100);
-    let t = tickCents(cents, type);
-    cents = Math.ceil(cents / t) * t;
-    while(netSell(cents / 100, shares, feeDiscount, minFee, tax) < cost){
-      cents += tickCents(cents, type);
-    }
-    return cents / 100;
-  }
 
   function renderInsight(d){
     if(!d){
@@ -441,10 +402,10 @@
       items.push(`現價 ${fmtPrice(d.current)}，比平均成本${gap >= 0 ? '高' : '低'} <strong${gap < 0 ? ' class="neg"' : ''}>${Math.abs(gap).toFixed(2)}%</strong>。`);
       if(d.bep !== null){
         if(d.net >= 0){
-          items.push(`以現價全部賣出，扣完所有成本後約 <strong>賺 ${fmtMoney(d.net)}</strong>。`);
+          items.push(`以現價全部賣出，扣完所有成本後約 <strong>賺 ${fmtMoney(d.net)}</strong>（手續費原價）。`);
         } else {
           const need = (d.bep - d.current) / d.current * 100;
-          items.push(`現價還要再漲 <strong class="neg">${need.toFixed(2)}%</strong> 才回本；以現價全部賣出約 <strong class="neg">賠 ${fmtMoney(-d.net)}</strong>。`);
+          items.push(`現價還要再漲 <strong class="neg">${need.toFixed(2)}%</strong> 才回本；以現價全部賣出約 <strong class="neg">賠 ${fmtMoney(-d.net)}</strong>（手續費原價）。`);
         }
       }
     } else {
@@ -479,7 +440,7 @@
     $('gaugeTrack').style.setProperty('--be-pct', bePct + '%');
     $('markerBe').style.left = bePct + '%';
     const tradableText = tradable !== null && tradable !== bep ? '・可掛單價 ' + tradable.toFixed(2) + ' 元' : '';
-    $('labelBe').innerHTML = '損益兩平 ' + bep.toFixed(2) + ' 元' + tradableText + '<span class="lbl-note">（已扣賣出手續費與 ' + taxPct + '% 證交稅・超過才賺錢，低於就賠錢。）</span>';
+    $('labelBe').innerHTML = '損益兩平 ' + bep.toFixed(2) + ' 元' + tradableText + '<span class="lbl-note">（手續費原價下，已扣賣出手續費與 ' + taxPct + '% 證交稅・超過才賺錢，低於就賠錢。）</span>';
     positionLabel($('labelBe'), bePct);
     $('gaugeTrack').style.marginTop = ($('labelBe').offsetHeight + 16) + 'px';
 
@@ -523,10 +484,12 @@
     document.querySelectorAll('.fee-discount-label').forEach(el => { el.textContent = $('feeDiscount').value; });
     lastResult = null;
 
+    // Everything is shown at the full (10 折) fee; only the 「目前 X 折」 net P&L uses the discounted fee
+    const discount = feeDiscount / 10;
     let totalShares = 0;
     let totalAmount = 0;
     let totalCost = 0;
-    let totalCostFull = 0;
+    let totalCostDiscounted = 0;
     const rows = [];
 
     lots.forEach((lot, i) => {
@@ -534,12 +497,12 @@
       const shares = parseInt(lot.shares, 10);
       if(!(price > 0) || !(shares > 0)) return;
       const amount = price * shares;
-      const fee = calcFee(amount, feeDiscount, minFee);
+      const fee = calcFee(amount, 1, minFee);
       const cost = amount + fee;
       totalShares += shares;
       totalAmount += amount;
       totalCost += cost;
-      totalCostFull += amount + calcFee(amount, 10, minFee);
+      totalCostDiscounted += amount + calcFee(amount, discount, minFee);
       rows.push({ idx: i + 1, price, shares, amount, fee, cost, avg: totalCost / totalShares });
     });
 
@@ -567,16 +530,16 @@
     `).join('');
 
     const tax = taxPct / 100;
-    const bep = breakEvenPrice(totalCost, totalShares, feeDiscount, minFee, tax);
-    const tradable = tradablePrice(bep, $('assetType').value, totalCost, totalShares, feeDiscount, minFee, tax);
+    const bep = breakevenPrice(totalCost, totalShares, 1, minFee, tax);
+    const tradable = tradablePrice(bep, TICK_TYPES[$('assetType').value], totalCost, totalShares, 1, minFee, tax);
 
     const current = parseFloat($('currentPrice').value);
-    const net = current > 0 ? netSell(current, totalShares, feeDiscount, minFee, tax) - totalCost : 0;
+    const netFull = current > 0 ? sellNet(current, totalShares, 1, minFee, tax) - totalCost : 0;
     const prices = rows.map(r => r.price);
     renderInsight({
       avg, avgNoFee: totalAmount / totalShares, cost: totalCost, shares: totalShares, count: rows.length,
       firstPrice: prices[0], minPrice: Math.min(...prices), maxPrice: Math.max(...prices),
-      bep, tradable, current, net, taxPct
+      bep, tradable, current, net: netFull, taxPct
     });
     renderGauge(bep, current, taxPct, tradable);
 
@@ -589,9 +552,9 @@
 
     const market = current * totalShares;
     const bookPnl = market - totalCost;
-    const netFull = netSell(current, totalShares, 10, minFee, tax) - totalCostFull;
+    const net = sellNet(current, totalShares, discount, minFee, tax) - totalCostDiscounted;
     const savings = net - netFull;
-    const roi = net / totalCost * 100;
+    const roi = netFull / totalCost * 100;
     $('sumMarket').textContent = fmtMoney(market);
     $('sumPnlBook').textContent = fmtSigned(bookPnl);
     $('sumRoi').textContent = fmtPct(roi);
@@ -599,7 +562,7 @@
     $('sumPnl').textContent = fmtSigned(net);
     $('sumPnlDiff').textContent = fmtSigned(savings);
     setSign($('sumPnlBook'), bookPnl);
-    setSign($('sumRoi'), net);
+    setSign($('sumRoi'), netFull);
     setSign($('sumPnlFull'), netFull);
     setSign($('sumPnl'), net);
     setSign($('sumPnlDiff'), savings);

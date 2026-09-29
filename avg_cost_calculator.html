@@ -181,6 +181,15 @@
             </div>
           </div>
         </div>
+
+        <div class="gauge-wrap" id="gaugeWrap">
+          <div class="gauge-track" id="gaugeTrack">
+            <div class="marker be" id="markerBe"></div>
+            <div class="marker-label be-label" id="labelBe"></div>
+            <div class="marker sell" id="markerSell"></div>
+            <div class="marker-label sell-label" id="labelSell"></div>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -408,6 +417,43 @@
     $('insightBody').innerHTML = '<ul>' + items.map(t => `<li>${t}</li>`).join('') + '</ul>';
   }
 
+  function positionLabel(el, p){
+    el.style.left = p + '%';
+    el.style.transform = p < 12 ? 'translateX(0%)' : p > 88 ? 'translateX(-100%)' : 'translateX(-50%)';
+  }
+
+  function renderGauge(bep, current, taxPct){
+    if(bep === null){
+      $('gaugeWrap').hidden = true;
+      return;
+    }
+    $('gaugeWrap').hidden = false;
+    const hasCurrent = current > 0;
+    const vals = hasCurrent ? [bep, current] : [bep];
+    const lo = Math.min(...vals) * 0.985;
+    const hi = Math.max(...vals) * 1.015;
+    const span = Math.max(hi - lo, 0.01);
+    const pct = v => Math.min(100, Math.max(0, (v - lo) / span * 100));
+
+    const bePct = hasCurrent ? pct(bep) : 50;
+    $('gaugeTrack').style.setProperty('--be-pct', bePct + '%');
+    $('markerBe').style.left = bePct + '%';
+    positionLabel($('labelBe'), bePct);
+    $('labelBe').innerHTML = '損益兩平 ' + bep.toFixed(2) + ' 元<span class="lbl-note">（已扣賣出手續費與 ' + taxPct + '% 證交稅・超過才賺錢，低於就賠錢。）</span>';
+
+    $('markerSell').hidden = !hasCurrent;
+    $('labelSell').hidden = !hasCurrent;
+    if(!hasCurrent) return;
+    const curPct = pct(current);
+    const isProfit = current >= bep;
+    $('markerSell').style.left = curPct + '%';
+    $('markerSell').classList.toggle('loss', !isProfit);
+    positionLabel($('labelSell'), curPct);
+    $('labelSell').textContent = '現價 ' + current.toFixed(2) + ' 元';
+    $('labelSell').classList.toggle('profit', isProfit);
+    $('labelSell').classList.toggle('loss', !isProfit);
+  }
+
   function resetPnl(){
     ['sumMarket','sumPnl','sumRoi','sumBepGap'].forEach(id => { $(id).textContent = '--'; setSign($(id), 0); });
     $('sumPnlBook').textContent = '';
@@ -419,6 +465,7 @@
     $('lotBody').innerHTML = '';
     resetPnl();
     renderInsight(null);
+    renderGauge(null);
   }
 
   function update(){
@@ -485,6 +532,7 @@
       firstPrice: prices[0], minPrice: Math.min(...prices), maxPrice: Math.max(...prices),
       bep, current, net, taxPct
     });
+    renderGauge(bep, current, taxPct);
 
     if(!(current > 0)){
       resetPnl();

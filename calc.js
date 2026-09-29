@@ -15,8 +15,13 @@ const FIELD_IDS = ['buyPrice','sellPrice','shares','feeDiscount','minFee','taxNo
 
 let selectedMode = 'normal';
 
+// Float products like 1000000×0.001425×0.28 come out as 398.99999999999994; the epsilon keeps floor() from dropping 1 元
+function floorMoney(x){
+  return Math.floor(x + 1e-9);
+}
+
 function calcFee(amount, feeDiscount, minFee){
-  const fee = Math.floor(amount * FEE_RATE * feeDiscount);
+  const fee = floorMoney(amount * FEE_RATE * feeDiscount);
   return Math.max(minFee, fee);
 }
 
@@ -27,7 +32,7 @@ function calculateTrade(buyPrice, sellPrice, shares, taxRate, feeDiscount, minFe
 
   const buyFee = calcFee(buyAmount, feeDiscount, minFee);
   const sellFee = calcFee(sellAmount, feeDiscount, minFee);
-  const tax = Math.floor(sellAmount * taxRate);
+  const tax = floorMoney(sellAmount * taxRate);
 
   const totalCost = buyFee + sellFee + tax;
   const netPnl = grossProfit - totalCost;

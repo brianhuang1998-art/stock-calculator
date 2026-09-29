@@ -29,9 +29,6 @@
   .lot-del[hidden]{display:block;visibility:hidden;}
   .lot-actions{margin-top:14px;}
   .tile .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
-  #pnlTile .k{font-size:18px;}
-  #pnlTile .pnl-item-label{font-size:16px;}
-  #sumMarket,#sumPnl,#sumRoi{font-size:26px;}
   .input-wrap input:disabled{background:#eceff1;border-color:#dde3e7;color:#8a98a6;cursor:not-allowed;}
   #labelBe{top:auto;bottom:calc(100% + 10px);white-space:normal;width:max-content;max-width:100%;}
   .v.profit{color:var(--accent-strong);}
@@ -133,7 +130,10 @@
       </div>
 
       <div class="card">
-        <h2>試算結果</h2>
+        <div class="card-head-row">
+          <h2>試算結果</h2>
+          <button id="copyResultBtn" class="copy-btn" type="button">📋 複製結果</button>
+        </div>
         <div class="tiles">
           <div class="tile">
             <div class="k">總持有股數</div>
@@ -148,21 +148,32 @@
             <div class="v mono" id="sumAvg">--</div>
             <div class="sub" id="sumAvgNoFee"></div>
           </div>
-          <div class="tile wide" id="pnlTile">
-            <div class="k">目前損益（以現價全部賣出）</div>
+          <div class="tile">
+            <div class="k">目前市值</div>
+            <div class="v mono" id="sumMarket">--</div>
+          </div>
+          <div class="tile">
+            <div class="k">帳面損益（未扣賣出成本）</div>
+            <div class="v mono" id="sumPnlBook">--</div>
+          </div>
+          <div class="tile">
+            <div class="k">報酬率 ROI（目前折數）</div>
+            <div class="v mono" id="sumRoi">--</div>
+          </div>
+          <div class="tile wide" id="sumPnlTile">
+            <div class="k">淨損益（以現價全部賣出，已扣買賣手續費與證交稅）</div>
             <div class="pnl-compare">
               <div class="pnl-item">
-                <div class="pnl-item-label">目前市值</div>
-                <div class="v mono" id="sumMarket">--</div>
+                <div class="pnl-item-label" id="pnlFullLabel">手續費原價（10 折）</div>
+                <div class="v mono" id="sumPnlFull">--</div>
               </div>
               <div class="pnl-item">
-                <div class="pnl-item-label">淨損益（已扣賣出成本）</div>
+                <div class="pnl-item-label" id="pnlCurrentLabel">目前 <span id="sumFeeDiscountLabel">2.8</span> 折</div>
                 <div class="v mono" id="sumPnl">--</div>
-                <div class="sub" id="sumPnlBook"></div>
               </div>
               <div class="pnl-item">
-                <div class="pnl-item-label">報酬率</div>
-                <div class="v mono" id="sumRoi">--</div>
+                <div class="pnl-item-label">折扣省下差價</div>
+                <div class="v mono" id="sumPnlDiff">--</div>
               </div>
             </div>
           </div>
@@ -229,7 +240,7 @@
           </div>
         </div>
         <div class="foot-note">
-          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本，報酬率也以淨損益計算；下方小字的帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）。「證交稅率」會依商品類型自動帶入；商品類型選「自訂」時才可以自己填寫。
+          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本，報酬率也以目前折數的淨損益計算；「手續費原價」欄把買進與賣出手續費都改用 10 折重算，「折扣省下差價」= 目前折數淨損益 − 原價淨損益。帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）。「證交稅率」會依商品類型自動帶入；商品類型選「自訂」時才可以自己填寫。
         </div>
       </div>
 
@@ -243,7 +254,7 @@
           <h3>2.為什麼跟券商 App 顯示的不一樣？</h3>
           <ul>
             <li>有些券商的均價不含手續費（可對照結果卡的小字）</li>
-            <li>券商顯示的「未實現損益」通常是帳面數字，沒扣賣出手續費與證交稅（可對照淨損益下方的小字）</li>
+            <li>券商顯示的「未實現損益」通常是帳面數字，沒扣賣出手續費與證交稅（可對照「帳面損益」）</li>
             <li>除權息（配股、配息）後，有些券商會調整成本</li>
             <li>本頁只處理買進，沒有處理中途賣出一部分的情況</li>
           </ul>
@@ -264,6 +275,7 @@
   const STORAGE_KEY = 'avgCostCalc:' + location.pathname;
   const FIELDS = ['currentPrice','feeDiscount','minFee','assetType','sellTaxPct'];
 
+  let lastResult = null;
   let lots = [
     { price: '100', shares: '1000' },
     { price: '90', shares: '1000' },
@@ -346,6 +358,9 @@
   }
   function fmtPrice(n){
     return n.toFixed(2) + ' 元';
+  }
+  function fmtSigned(n){
+    return (Math.round(n) > 0 ? '+' : '') + fmtMoney(n);
   }
   function fmtPct(n){
     return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
@@ -451,10 +466,10 @@
   }
 
   function resetPnl(){
-    ['sumMarket','sumPnl','sumRoi'].forEach(id => { $(id).textContent = '--'; setSign($(id), 0); });
-    $('sumPnlBook').textContent = '';
+    ['sumMarket','sumPnlBook','sumRoi','sumPnlFull','sumPnl','sumPnlDiff'].forEach(id => { $(id).textContent = '--'; setSign($(id), 0); });
   }
   function resetAll(){
+    lastResult = null;
     ['sumShares','sumCost','sumAvg'].forEach(id => { $(id).textContent = '--'; });
     $('sumAvgNoFee').textContent = '';
     $('lotBody').innerHTML = '';
@@ -474,9 +489,13 @@
       return;
     }
 
+    $('sumFeeDiscountLabel').textContent = $('feeDiscount').value;
+    lastResult = null;
+
     let totalShares = 0;
     let totalAmount = 0;
     let totalCost = 0;
+    let totalCostFull = 0;
     const rows = [];
 
     lots.forEach((lot, i) => {
@@ -489,6 +508,7 @@
       totalShares += shares;
       totalAmount += amount;
       totalCost += cost;
+      totalCostFull += amount + calcFee(amount, 10, minFee);
       rows.push({ idx: i + 1, price, shares, amount, fee, cost, avg: totalCost / totalShares });
     });
 
@@ -528,6 +548,8 @@
     });
     renderGauge(bep, current, taxPct);
 
+    lastResult = { rows, totalShares, totalCost, avg, avgNoFee: totalAmount / totalShares, bep, taxPct, current: null };
+
     if(!(current > 0)){
       resetPnl();
       return;
@@ -535,13 +557,74 @@
 
     const market = current * totalShares;
     const bookPnl = market - totalCost;
+    const netFull = netSell(current, totalShares, 10, minFee, tax) - totalCostFull;
+    const savings = net - netFull;
+    const roi = net / totalCost * 100;
     $('sumMarket').textContent = fmtMoney(market);
-    $('sumPnl').textContent = (net > 0 ? '+' : '') + fmtMoney(net);
-    $('sumPnlBook').textContent = '帳面：' + (bookPnl > 0 ? '+' : '') + fmtMoney(bookPnl) + '（未扣賣出成本）';
-    $('sumRoi').textContent = fmtPct(net / totalCost * 100);
-    setSign($('sumPnl'), net);
+    $('sumPnlBook').textContent = fmtSigned(bookPnl);
+    $('sumRoi').textContent = fmtPct(roi);
+    $('sumPnlFull').textContent = fmtSigned(netFull);
+    $('sumPnl').textContent = fmtSigned(net);
+    $('sumPnlDiff').textContent = fmtSigned(savings);
+    setSign($('sumPnlBook'), bookPnl);
     setSign($('sumRoi'), net);
+    setSign($('sumPnlFull'), netFull);
+    setSign($('sumPnl'), net);
+    setSign($('sumPnlDiff'), savings);
+
+    Object.assign(lastResult, { current, market, bookPnl, netFull, net, savings, roi });
   }
+
+  function buildResultText(){
+    const r = lastResult;
+    const typeName = $('assetType').options[$('assetType').selectedIndex].text;
+    const lines = ['【加權平均成本試算結果】'];
+    r.rows.forEach(x => lines.push(`第 ${x.idx} 筆：${x.price.toFixed(2)} 元 × ${x.shares.toLocaleString('zh-Hant-TW')} 股`));
+    lines.push(`總持有股數：${r.totalShares.toLocaleString('zh-Hant-TW')} 股`);
+    lines.push(`總買進成本（含手續費，${$('feeDiscount').value} 折）：${fmtMoney(r.totalCost)}`);
+    lines.push(`加權平均成本：${fmtPrice(r.avg)}（不含手續費 ${fmtPrice(r.avgNoFee)}）`);
+    if(r.bep !== null) lines.push(`損益兩平價：${fmtPrice(r.bep)}（${typeName}，證交稅 ${r.taxPct}%）`);
+    if(r.current !== null){
+      lines.push(`目前股價：${fmtPrice(r.current)}　目前市值：${fmtMoney(r.market)}`);
+      lines.push(`帳面損益（未扣賣出成本）：${fmtSigned(r.bookPnl)}`);
+      lines.push(`淨損益（手續費原價）：${fmtSigned(r.netFull)}`);
+      lines.push(`淨損益（目前 ${$('feeDiscount').value} 折）：${fmtSigned(r.net)}`);
+      lines.push(`折扣省下差價：${fmtSigned(r.savings)}`);
+      lines.push(`報酬率：${fmtPct(r.roi)}`);
+    }
+    return lines.join('\n');
+  }
+
+  function fallbackCopy(text, done){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+    done();
+  }
+
+  $('copyResultBtn').addEventListener('click', function(){
+    if(!lastResult) return;
+    const btn = this;
+    const text = buildResultText();
+    const done = () => {
+      btn.textContent = '已複製 ✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 複製結果';
+        btn.classList.remove('copied');
+      }, 1500);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
 
   $('addLot').addEventListener('click', () => {
     lots.push({ price: '', shares: '1000' });

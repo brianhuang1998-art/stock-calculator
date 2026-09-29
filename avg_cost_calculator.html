@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMDBlNmEwIi8+Cjx0ZXh0IHg9IjMyIiB5PSI0OSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD4KPC9zdmc+Cg==">
+<title>加權平均成本試算 - 試算工具</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .lot-head,.lot-row{
+    display:grid;
+    grid-template-columns:64px 1fr 1fr 40px;
+    gap:10px;
+    align-items:center;
+  }
+  .lot-head{font-size:12px;color:var(--text-muted);margin-bottom:6px;}
+  .lot-row + .lot-row{margin-top:10px;}
+  .lot-idx{font-size:13px;color:var(--text-muted);}
+  .lot-del{
+    width:40px;height:40px;
+    border:1.5px solid var(--border);
+    background:#fff;
+    color:var(--text-muted);
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+  }
+  .lot-del:hover{border-color:var(--loss);color:var(--loss);}
+  .lot-del[hidden]{display:block;visibility:hidden;}
+  .lot-actions{margin-top:14px;}
+  .tile .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+  #pnlTile .k{font-size:18px;}
+  #pnlTile .pnl-item-label{font-size:16px;}
+  #sumMarket,#sumPnl,#sumRoi{font-size:26px;}
+  .v.profit{color:var(--accent-strong);}
+  .v.loss{color:var(--loss);}
+  .table-wrap{overflow-x:auto;}
+  .lot-table{width:100%;border-collapse:collapse;font-size:13.5px;white-space:nowrap;}
+  .lot-table th{
+    text-align:right;
+    font-size:12px;
+    color:var(--text-muted);
+    font-weight:600;
+    padding:8px 10px;
+    border-bottom:1.5px solid var(--border);
+  }
+  .lot-table th:first-child,.lot-table td:first-child{text-align:left;}
+  .lot-table td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--border);
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .lot-table tr:last-child td{border-bottom:none;}
+  .lot-table td.avg{color:var(--navy);font-weight:700;}
+  .assume h3{font-size:14px;color:var(--navy);margin:20px 0 6px;}
+  .assume h3:first-child{margin-top:0;}
+  .assume p{margin:0 0 6px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span>
+  <span class="brand">Brian工作室</span>
+</div>
+<div class="subbar">
+  <a href="home_page.html">🏠 首頁</a><span>›</span><a href="trading_position.html">交易與部位管理</a><span>›</span><a class="here" href="avg_cost_calculator.html">加權平均成本試算</a>
+</div>
+
+<main>
+  <h1>加權平均成本試算</h1>
+  <p class="subtitle">輸入每一筆買進的價格與股數，算出加權平均成本與目前損益</p>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h2>買進紀錄</h2>
+        <div class="lot-head">
+          <span></span><span>買進價格</span><span>股數（1 張 = 1,000 股）</span><span></span>
+        </div>
+        <div id="lotList"></div>
+        <div class="lot-actions">
+          <button type="button" class="copy-btn" id="addLot">＋ 新增一筆</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>其他參數</h2>
+        <div class="field-grid">
+          <div>
+            <label for="currentPrice">目前股價</label>
+            <div class="input-wrap">
+              <input type="number" id="currentPrice" inputmode="decimal" step="0.01" value="95" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <span class="unit">元</span>
+            </div>
+          </div>
+          <div>
+            <label for="feeDiscount">手續費折數</label>
+            <div class="input-wrap">
+              <input type="number" id="feeDiscount" inputmode="decimal" step="0.1" value="2.8" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <span class="unit">折</span>
+            </div>
+          </div>
+          <div>
+            <label for="minFee">單筆手續費低消</label>
+            <div class="input-wrap">
+              <input type="number" id="minFee" inputmode="numeric" step="1" value="20" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <span class="unit">元</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>試算結果</h2>
+        <div class="tiles">
+          <div class="tile">
+            <div class="k">總持有股數</div>
+            <div class="v mono" id="sumShares">--</div>
+          </div>
+          <div class="tile">
+            <div class="k">總買進成本（含手續費）</div>
+            <div class="v mono" id="sumCost">--</div>
+          </div>
+          <div class="tile">
+            <div class="k">加權平均成本</div>
+            <div class="v mono" id="sumAvg">--</div>
+            <div class="sub" id="sumAvgNoFee"></div>
+          </div>
+          <div class="tile wide" id="pnlTile">
+            <div class="k">目前損益（未實現）</div>
+            <div class="pnl-compare">
+              <div class="pnl-item">
+                <div class="pnl-item-label">目前市值</div>
+                <div class="v mono" id="sumMarket">--</div>
+              </div>
+              <div class="pnl-item">
+                <div class="pnl-item-label">未實現損益</div>
+                <div class="v mono" id="sumPnl">--</div>
+              </div>
+              <div class="pnl-item">
+                <div class="pnl-item-label">報酬率</div>
+                <div class="v mono" id="sumRoi">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>逐筆明細</h2>
+        <div class="table-wrap">
+          <table class="lot-table">
+            <thead>
+              <tr>
+                <th>筆數</th>
+                <th>買進價</th>
+                <th>股數</th>
+                <th>成交金額</th>
+                <th>手續費</th>
+                <th>買進成本</th>
+                <th>累積平均成本</th>
+              </tr>
+            </thead>
+            <tbody id="lotBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>註解</h2>
+        <div class="insight">
+          <div class="lead">依目前輸入即時判讀：</div>
+          <div id="insightBody"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>計算基準（台股個股現制）</h2>
+        <div class="rate-list">
+          <div class="rate-item">
+            <span class="rk">券商手續費法定牌價</span>
+            <span class="rv">0.1425%</span>
+          </div>
+          <div class="rate-item">
+            <span class="rk">證交稅（一般交易，只在賣出時收）</span>
+            <span class="rv">0.3%</span>
+          </div>
+        </div>
+        <div class="foot-note">
+          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。未實現損益 = 目前股價 × 總股數 − 總買進成本，尚未扣除賣出手續費與證交稅；「回本賣價」則已扣除。證交稅以個股一般交易 0.3% 計，ETF 稅率較低，實際回本價會再低一些。
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>觀念說明</h2>
+        <div class="insight assume">
+          <h3>1.什麼是加權平均成本？</h3>
+          <p>分好幾次用不同價格買同一檔股票時，把「每一股平均花了多少錢」算出來。買得越多股的那一筆，對平均成本的影響越大，所以叫「加權」。</p>
+          <p>例如 100 元買 1 張、80 元買 3 張：平均成本不是 (100 + 80) ÷ 2 = 90 元，而是 (100×1,000 + 80×3,000) ÷ 4,000 = <strong>85 元</strong>（未含手續費）。</p>
+
+          <h3>2.為什麼跟券商 App 顯示的不一樣？</h3>
+          <ul>
+            <li>有些券商的均價不含手續費（可對照結果卡的小字）</li>
+            <li>除權息（配股、配息）後，有些券商會調整成本</li>
+            <li>本頁只處理買進，沒有處理中途賣出一部分的情況</li>
+          </ul>
+        </div>
+        <div class="foot-note">
+          此工具僅供試算參考，實際成本以券商對帳單為準。
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const FEE_RATE = 0.001425;
+  const SELL_TAX = 0.003;
+  const STORAGE_KEY = 'avgCostCalc:' + location.pathname;
+  const FIELDS = ['currentPrice','feeDiscount','minFee'];
+
+  let lots = [
+    { price: '100', shares: '1000' },
+    { price: '90', shares: '1000' },
+    { price: '80', shares: '2000' }
+  ];
+
+  function loadStored(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e){ return null; }
+  }
+  function saveStored(){
+    const data = { lots };
+    FIELDS.forEach(f => { data[f] = $(f).value; });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+  }
+
+  const saved = loadStored();
+  if(saved){
+    if(Array.isArray(saved.lots) && saved.lots.length){
+      lots = saved.lots.map(l => ({ price: String(l.price ?? ''), shares: String(l.shares ?? '') }));
+    }
+    FIELDS.forEach(f => { if(saved[f] !== undefined) $(f).value = saved[f]; });
+  }
+
+  function selectOnFocus(input){
+    const sel = () => setTimeout(() => input.select(), 1);
+    input.addEventListener('focus', sel);
+    input.addEventListener('click', sel);
+  }
+
+  function makeInput(value, step, mode, unit, onInput){
+    const wrap = document.createElement('div');
+    wrap.className = 'input-wrap';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.inputMode = mode;
+    input.step = step;
+    input.value = value;
+    selectOnFocus(input);
+    input.addEventListener('input', () => onInput(input.value));
+    const u = document.createElement('span');
+    u.className = 'unit';
+    u.textContent = unit;
+    wrap.append(input, u);
+    return wrap;
+  }
+
+  function renderLots(){
+    const list = $('lotList');
+    list.innerHTML = '';
+    lots.forEach((lot, i) => {
+      const row = document.createElement('div');
+      row.className = 'lot-row';
+
+      const idx = document.createElement('span');
+      idx.className = 'lot-idx';
+      idx.textContent = '第 ' + (i + 1) + ' 筆';
+
+      const priceWrap = makeInput(lot.price, '0.01', 'decimal', '元', v => { lot.price = v; update(); });
+      const sharesWrap = makeInput(lot.shares, '1', 'numeric', '股', v => { lot.shares = v; update(); });
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'lot-del';
+      del.textContent = '✕';
+      del.setAttribute('aria-label', '刪除第 ' + (i + 1) + ' 筆');
+      del.hidden = lots.length === 1;
+      del.addEventListener('click', () => {
+        lots.splice(i, 1);
+        renderLots();
+        update();
+      });
+
+      row.append(idx, priceWrap, sharesWrap, del);
+      list.appendChild(row);
+    });
+  }
+
+  function fmtMoney(n){
+    return Math.round(n).toLocaleString('zh-Hant-TW') + ' 元';
+  }
+  function fmtPrice(n){
+    return n.toFixed(2) + ' 元';
+  }
+  function fmtPct(n){
+    return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  }
+  function setSign(el, n){
+    el.classList.toggle('profit', n > 0);
+    el.classList.toggle('loss', n < 0);
+  }
+
+  function calcFee(amount, feeDiscount, minFee){
+    return Math.max(minFee, Math.floor(amount * FEE_RATE * feeDiscount / 10));
+  }
+  function netSell(price, shares, feeDiscount, minFee){
+    const amount = price * shares;
+    return amount - calcFee(amount, feeDiscount, minFee) - Math.floor(amount * SELL_TAX);
+  }
+  function breakEvenPrice(cost, shares, feeDiscount, minFee){
+    const keep = 1 - FEE_RATE * feeDiscount / 10 - SELL_TAX;
+    if(keep <= 0) return null;
+    const est = Math.max(cost / (shares * keep), (cost + minFee) / (shares * (1 - SELL_TAX)));
+    // floor() on fee/tax can make the true answer slightly below the estimate, so start a bit lower and step up by 0.01
+    let cents = Math.max(1, Math.floor((est - 3 / shares) * 100) - 1);
+    while(netSell(cents / 100, shares, feeDiscount, minFee) < cost) cents++;
+    return cents / 100;
+  }
+
+  function renderInsight(d){
+    if(!d){
+      $('insightBody').innerHTML = '<ul><li>請至少輸入一筆有效的買進價格與股數。</li></ul>';
+      return;
+    }
+    const items = [];
+    items.push(`加權平均成本 <strong>${fmtPrice(d.avg)}</strong>，共 ${d.count} 筆、${d.shares.toLocaleString('zh-Hant-TW')} 股（約 ${(d.shares / 1000).toFixed(2)} 張）。`);
+    if(d.count > 1){
+      const diff = d.avg - d.firstPrice;
+      items.push(`買進價從 ${d.minPrice.toFixed(2)} 到 ${d.maxPrice.toFixed(2)} 元；分批買進後，平均成本比第 1 筆買價${diff <= 0 ? '低' : '高'} ${Math.abs(diff).toFixed(2)} 元。`);
+    }
+    if(d.bep !== null){
+      items.push(`回本賣價（已扣賣出手續費與 0.3% 證交稅）約 <strong>${fmtPrice(d.bep)}</strong>。`);
+    }
+    if(d.current > 0){
+      const gap = (d.current - d.avg) / d.avg * 100;
+      items.push(`現價 ${fmtPrice(d.current)}，比平均成本${gap >= 0 ? '高' : '低'} <strong${gap < 0 ? ' class="neg"' : ''}>${Math.abs(gap).toFixed(2)}%</strong>。`);
+      if(d.bep !== null){
+        const net = netSell(d.current, d.shares, d.feeDiscount, d.minFee) - d.cost;
+        if(net >= 0){
+          items.push(`以現價全部賣出，扣完所有成本後約 <strong>賺 ${fmtMoney(net)}</strong>。`);
+        } else {
+          const need = (d.bep - d.current) / d.current * 100;
+          items.push(`現價還要再漲 <strong class="neg">${need.toFixed(2)}%</strong> 才回本；以現價全部賣出約 <strong class="neg">賠 ${fmtMoney(-net)}</strong>。`);
+        }
+      }
+    } else {
+      items.push('輸入目前股價後，會顯示離回本還差多少。');
+    }
+    $('insightBody').innerHTML = '<ul>' + items.map(t => `<li>${t}</li>`).join('') + '</ul>';
+  }
+
+  function resetPnl(){
+    ['sumMarket','sumPnl','sumRoi'].forEach(id => { $(id).textContent = '--'; setSign($(id), 0); });
+  }
+  function resetAll(){
+    ['sumShares','sumCost','sumAvg'].forEach(id => { $(id).textContent = '--'; });
+    $('sumAvgNoFee').textContent = '';
+    $('lotBody').innerHTML = '';
+    resetPnl();
+    renderInsight(null);
+  }
+
+  function update(){
+    saveStored();
+
+    const feeDiscount = parseFloat($('feeDiscount').value);
+    const minFee = parseFloat($('minFee').value);
+    if(!isFinite(feeDiscount) || feeDiscount < 0 || !isFinite(minFee) || minFee < 0){
+      resetAll();
+      return;
+    }
+
+    let totalShares = 0;
+    let totalAmount = 0;
+    let totalCost = 0;
+    const rows = [];
+
+    lots.forEach((lot, i) => {
+      const price = parseFloat(lot.price);
+      const shares = parseInt(lot.shares, 10);
+      if(!(price > 0) || !(shares > 0)) return;
+      const amount = price * shares;
+      const fee = calcFee(amount, feeDiscount, minFee);
+      const cost = amount + fee;
+      totalShares += shares;
+      totalAmount += amount;
+      totalCost += cost;
+      rows.push({ idx: i + 1, price, shares, amount, fee, cost, avg: totalCost / totalShares });
+    });
+
+    if(!rows.length){
+      resetAll();
+      return;
+    }
+
+    const avg = totalCost / totalShares;
+    $('sumShares').textContent = totalShares.toLocaleString('zh-Hant-TW') + ' 股';
+    $('sumCost').textContent = fmtMoney(totalCost);
+    $('sumAvg').textContent = fmtPrice(avg);
+    $('sumAvgNoFee').textContent = '不含手續費：' + fmtPrice(totalAmount / totalShares);
+
+    $('lotBody').innerHTML = rows.map(r => `
+      <tr>
+        <td>第 ${r.idx} 筆</td>
+        <td>${r.price.toFixed(2)}</td>
+        <td>${r.shares.toLocaleString('zh-Hant-TW')}</td>
+        <td>${fmtMoney(r.amount)}</td>
+        <td>${fmtMoney(r.fee)}</td>
+        <td>${fmtMoney(r.cost)}</td>
+        <td class="avg">${fmtPrice(r.avg)}</td>
+      </tr>
+    `).join('');
+
+    const current = parseFloat($('currentPrice').value);
+    const prices = rows.map(r => r.price);
+    renderInsight({
+      avg, cost: totalCost, shares: totalShares, count: rows.length,
+      firstPrice: prices[0], minPrice: Math.min(...prices), maxPrice: Math.max(...prices),
+      bep: breakEvenPrice(totalCost, totalShares, feeDiscount, minFee),
+      current, feeDiscount, minFee
+    });
+
+    if(!(current > 0)){
+      resetPnl();
+      return;
+    }
+    const market = current * totalShares;
+    const pnl = market - totalCost;
+    const roi = pnl / totalCost * 100;
+    $('sumMarket').textContent = fmtMoney(market);
+    $('sumPnl').textContent = (pnl > 0 ? '+' : '') + fmtMoney(pnl);
+    $('sumRoi').textContent = fmtPct(roi);
+    setSign($('sumPnl'), pnl);
+    setSign($('sumRoi'), pnl);
+  }
+
+  $('addLot').addEventListener('click', () => {
+    lots.push({ price: '', shares: '1000' });
+    renderLots();
+    update();
+    const inputs = $('lotList').querySelectorAll('.lot-row:last-child input');
+    if(inputs.length) inputs[0].focus();
+  });
+
+  FIELDS.forEach(f => $(f).addEventListener('input', update));
+  renderLots();
+  update();
+})();
+</script>
+<button id="backToTop" aria-label="回到頂部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+(function(){
+  var btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', function(){
+    btn.classList.toggle('show', window.scrollY > 400);
+  });
+})();
+</script>
+</body>
+</html>

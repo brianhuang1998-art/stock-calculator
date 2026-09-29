@@ -1,7 +1,7 @@
 # 股票網站架設
 
 台股交易損益試算工具，用 GitHub Pages 架設的靜態網站。
-上線網址：https://brianhuang1998-art.github.io/stock-calculator/
+上線網址：https://brianhuang1998-art.github.io/stock_analysis/
 
 ## 網站頁面（實際會被瀏覽器讀取）
 

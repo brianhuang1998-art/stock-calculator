@@ -29,12 +29,10 @@
   .lot-del[hidden]{display:block;visibility:hidden;}
   .lot-actions{margin-top:14px;}
   .tile .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
-  #pnlTile .k,#bepTile .k{font-size:18px;}
-  #pnlTile .pnl-item-label,#bepTile .pnl-item-label{font-size:16px;}
-  #sumMarket,#sumPnl,#sumRoi,#sumBep,#sumBepGap{font-size:26px;}
-  #sumBep{color:var(--navy);}
-  #bepTile .pnl-compare{grid-template-columns:1fr 1fr;}
-  @media (max-width:480px){ #bepTile .pnl-compare{grid-template-columns:1fr;} }
+  #pnlTile .k{font-size:18px;}
+  #pnlTile .pnl-item-label{font-size:16px;}
+  #sumMarket,#sumPnl,#sumRoi{font-size:26px;}
+  #labelBe{top:auto;bottom:calc(100% + 10px);white-space:normal;width:max-content;max-width:100%;}
   .v.profit{color:var(--accent-strong);}
   .v.loss{color:var(--loss);}
   .table-wrap{overflow-x:auto;}
@@ -164,19 +162,6 @@
               <div class="pnl-item">
                 <div class="pnl-item-label">報酬率</div>
                 <div class="v mono" id="sumRoi">--</div>
-              </div>
-            </div>
-          </div>
-          <div class="tile wide" id="bepTile">
-            <div class="k">損益兩平（已扣賣出手續費與證交稅）</div>
-            <div class="pnl-compare">
-              <div class="pnl-item">
-                <div class="pnl-item-label">損益兩平價</div>
-                <div class="v mono" id="sumBep">--</div>
-              </div>
-              <div class="pnl-item">
-                <div class="pnl-item-label" id="bepGapLabel">現價距離兩平</div>
-                <div class="v mono" id="sumBepGap">--</div>
               </div>
             </div>
           </div>
@@ -418,8 +403,12 @@
   }
 
   function positionLabel(el, p){
-    el.style.left = p + '%';
-    el.style.transform = p < 12 ? 'translateX(0%)' : p > 88 ? 'translateX(-100%)' : 'translateX(-50%)';
+    const trackW = $('gaugeTrack').clientWidth;
+    el.style.transform = 'none';
+    el.style.left = '0px';
+    const w = el.offsetWidth;
+    const left = Math.max(0, Math.min(trackW - w, p / 100 * trackW - w / 2));
+    el.style.left = left + 'px';
   }
 
   function renderGauge(bep, current, taxPct){
@@ -438,8 +427,9 @@
     const bePct = hasCurrent ? pct(bep) : 50;
     $('gaugeTrack').style.setProperty('--be-pct', bePct + '%');
     $('markerBe').style.left = bePct + '%';
-    positionLabel($('labelBe'), bePct);
     $('labelBe').innerHTML = '損益兩平 ' + bep.toFixed(2) + ' 元<span class="lbl-note">（已扣賣出手續費與 ' + taxPct + '% 證交稅・超過才賺錢，低於就賠錢。）</span>';
+    positionLabel($('labelBe'), bePct);
+    $('gaugeTrack').style.marginTop = ($('labelBe').offsetHeight + 16) + 'px';
 
     $('markerSell').hidden = !hasCurrent;
     $('labelSell').hidden = !hasCurrent;
@@ -448,19 +438,18 @@
     const isProfit = current >= bep;
     $('markerSell').style.left = curPct + '%';
     $('markerSell').classList.toggle('loss', !isProfit);
-    positionLabel($('labelSell'), curPct);
     $('labelSell').textContent = '現價 ' + current.toFixed(2) + ' 元';
+    positionLabel($('labelSell'), curPct);
     $('labelSell').classList.toggle('profit', isProfit);
     $('labelSell').classList.toggle('loss', !isProfit);
   }
 
   function resetPnl(){
-    ['sumMarket','sumPnl','sumRoi','sumBepGap'].forEach(id => { $(id).textContent = '--'; setSign($(id), 0); });
+    ['sumMarket','sumPnl','sumRoi'].forEach(id => { $(id).textContent = '--'; setSign($(id), 0); });
     $('sumPnlBook').textContent = '';
-    $('bepGapLabel').textContent = '現價距離兩平';
   }
   function resetAll(){
-    ['sumShares','sumCost','sumAvg','sumBep'].forEach(id => { $(id).textContent = '--'; });
+    ['sumShares','sumCost','sumAvg'].forEach(id => { $(id).textContent = '--'; });
     $('sumAvgNoFee').textContent = '';
     $('lotBody').innerHTML = '';
     resetPnl();
@@ -522,7 +511,6 @@
 
     const tax = taxPct / 100;
     const bep = breakEvenPrice(totalCost, totalShares, feeDiscount, minFee, tax);
-    $('sumBep').textContent = bep === null ? '--' : fmtPrice(bep);
 
     const current = parseFloat($('currentPrice').value);
     const net = current > 0 ? netSell(current, totalShares, feeDiscount, minFee, tax) - totalCost : 0;
@@ -539,17 +527,6 @@
       return;
     }
 
-    if(bep !== null){
-      const above = current >= bep;
-      $('bepGapLabel').textContent = above ? '現價高於兩平' : '還要上漲';
-      $('sumBepGap').textContent = above
-        ? fmtPct((current - bep) / bep * 100)
-        : ((bep - current) / current * 100).toFixed(2) + '%';
-      setSign($('sumBepGap'), above ? 1 : -1);
-    } else {
-      $('sumBepGap').textContent = '--';
-      setSign($('sumBepGap'), 0);
-    }
     const market = current * totalShares;
     const bookPnl = market - totalCost;
     $('sumMarket').textContent = fmtMoney(market);
@@ -578,6 +555,7 @@
     $('assetType').value = match || 'custom';
     update();
   });
+  window.addEventListener('resize', update);
   renderLots();
   update();
 })();

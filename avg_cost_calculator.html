@@ -157,7 +157,7 @@
             <div class="v mono" id="sumPnlBook">--</div>
           </div>
           <div class="tile">
-            <div class="k">報酬率 ROI（目前折數）</div>
+            <div class="k">報酬率 ROI（目前 <span class="fee-discount-label">2.8</span> 折）</div>
             <div class="v mono" id="sumRoi">--</div>
           </div>
           <div class="tile wide" id="sumPnlTile">
@@ -168,7 +168,7 @@
                 <div class="v mono" id="sumPnlFull">--</div>
               </div>
               <div class="pnl-item">
-                <div class="pnl-item-label" id="pnlCurrentLabel">目前 <span id="sumFeeDiscountLabel">2.8</span> 折</div>
+                <div class="pnl-item-label" id="pnlCurrentLabel">目前 <span class="fee-discount-label">2.8</span> 折</div>
                 <div class="v mono" id="sumPnl">--</div>
               </div>
               <div class="pnl-item">
@@ -489,7 +489,7 @@
       return;
     }
 
-    $('sumFeeDiscountLabel').textContent = $('feeDiscount').value;
+    document.querySelectorAll('.fee-discount-label').forEach(el => { el.textContent = $('feeDiscount').value; });
     lastResult = null;
 
     let totalShares = 0;

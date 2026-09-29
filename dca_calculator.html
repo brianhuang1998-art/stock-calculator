@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMDBlNmEwIi8+Cjx0ZXh0IHg9IjMyIiB5PSI0OSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD4KPC9zdmc+Cg==">
+<title>定期定額複利試算 - 試算工具</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .table-wrap{overflow-x:auto;}
+  .dca-table{width:100%;border-collapse:collapse;font-size:13.5px;white-space:nowrap;}
+  .dca-table th{
+    text-align:right;
+    font-size:12px;
+    color:var(--text-muted);
+    font-weight:600;
+    padding:8px 10px;
+    border-bottom:1.5px solid var(--border);
+  }
+  .dca-table th:first-child,.dca-table td:first-child{text-align:left;}
+  .dca-table td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--border);
+    text-align:right;
+    font-family:var(--font-main);
+    font-variant-numeric:tabular-nums;
+  }
+  .dca-table tr:last-child td{border-bottom:none;}
+  .dca-table td.gain-pos{color:var(--accent-strong);font-weight:600;}
+  .dca-table td.gain-neg{color:var(--loss);font-weight:600;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="dot"></span>
+  <span class="brand">Brian工作室</span>
+</div>
+<div class="subbar">
+  <a href="home_page.html">🏠 首頁</a><span>›</span><a href="trading_position.html">交易與部位管理</a><span>›</span><a class="here" href="dca_calculator.html">定期定額複利試算</a>
+</div>
+
+<main>
+  <h1>定期定額複利試算</h1>
+  <p class="subtitle">輸入本金、每月扣款金額與預期年化報酬率，試算長期累積資產與總報酬</p>
+
+  <div class="card">
+    <h2>試算參數</h2>
+    <div class="field-grid">
+      <div>
+        <label for="principal">期初本金</label>
+        <div class="input-wrap">
+          <input type="number" id="principal" inputmode="decimal" step="1000" value="0" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+          <span class="unit">元</span>
+        </div>
+      </div>
+      <div>
+        <label for="monthlyContribution">每月扣款金額</label>
+        <div class="input-wrap">
+          <input type="number" id="monthlyContribution" inputmode="decimal" step="500" value="5000" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+          <span class="unit">元</span>
+        </div>
+      </div>
+      <div>
+        <label for="annualRate">預期年化報酬率</label>
+        <div class="input-wrap">
+          <input type="number" id="annualRate" inputmode="decimal" step="0.5" value="7" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+          <span class="unit">%</span>
+        </div>
+      </div>
+      <div>
+        <label for="years">投資年數</label>
+        <div class="input-wrap">
+          <input type="number" id="years" inputmode="numeric" step="1" value="20" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+          <span class="unit">年</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>試算結果</h2>
+    <div class="tiles">
+      <div class="tile">
+        <div class="k">累積投入本金</div>
+        <div class="v mono" id="sumInvested">--</div>
+      </div>
+      <div class="tile">
+        <div class="k">期末預估資產</div>
+        <div class="v mono" id="sumFinal">--</div>
+      </div>
+      <div class="tile wide">
+        <div class="k">累積報酬</div>
+        <div class="pnl-compare">
+          <div class="pnl-item">
+            <div class="pnl-item-label">報酬金額</div>
+            <div class="v mono" id="sumGain">--</div>
+          </div>
+          <div class="pnl-item">
+            <div class="pnl-item-label">報酬率 ROI</div>
+            <div class="v mono" id="sumRoi">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>逐年明細</h2>
+    <div class="table-wrap">
+      <table class="dca-table">
+        <thead>
+          <tr>
+            <th>年度</th>
+            <th>累積投入本金</th>
+            <th>期末資產</th>
+            <th>累積報酬</th>
+            <th>報酬率</th>
+          </tr>
+        </thead>
+        <tbody id="yearlyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>計算假設</h2>
+    <div class="foot-note">
+      每月扣款於月底計入，並以「年化報酬率換算的月複利」成長（月報酬率 = (1+年化報酬率)^(1/12) − 1）；期初本金與每月扣款都採相同報酬率成長。此工具僅為試算規劃參考，不代表實際投資報酬，市場實際報酬會隨時間波動。
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = 'dcaCalc:' + location.pathname;
+  const FIELDS = ['principal','monthlyContribution','annualRate','years'];
+
+  function loadStored(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e){ return null; }
+  }
+  function saveStored(){
+    const data = {};
+    FIELDS.forEach(f => { data[f] = $(f).value; });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+  }
+
+  const saved = loadStored();
+  if(saved){
+    FIELDS.forEach(f => { if(saved[f] !== undefined) $(f).value = saved[f]; });
+  }
+
+  function fmtMoney(n){
+    return Math.round(n).toLocaleString('zh-Hant-TW') + ' 元';
+  }
+  function fmtPct(n){
+    return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+  }
+
+  function update(){
+    saveStored();
+
+    const principal = parseFloat($('principal').value) || 0;
+    const monthly = parseFloat($('monthlyContribution').value) || 0;
+    const annualRatePct = parseFloat($('annualRate').value);
+    const years = parseInt($('years').value, 10);
+
+    if(!isFinite(annualRatePct) || !isFinite(years) || years <= 0){
+      $('sumInvested').textContent = '--';
+      $('sumFinal').textContent = '--';
+      $('sumGain').textContent = '--';
+      $('sumRoi').textContent = '--';
+      $('yearlyBody').innerHTML = '';
+      return;
+    }
+
+    const monthlyRate = Math.pow(1 + annualRatePct / 100, 1 / 12) - 1;
+    const totalMonths = years * 12;
+
+    let assets = principal;
+    let invested = principal;
+    const rows = [];
+
+    for(let m = 1; m <= totalMonths; m++){
+      assets = assets * (1 + monthlyRate) + monthly;
+      invested += monthly;
+      if(m % 12 === 0){
+        const gain = assets - invested;
+        const roi = invested > 0 ? (gain / invested) * 100 : 0;
+        rows.push({ year: m / 12, invested, assets, gain, roi });
+      }
+    }
+
+    const finalRow = rows[rows.length - 1];
+    $('sumInvested').textContent = fmtMoney(finalRow.invested);
+    $('sumFinal').textContent = fmtMoney(finalRow.assets);
+    $('sumGain').textContent = fmtMoney(finalRow.gain);
+    $('sumRoi').textContent = fmtPct(finalRow.roi);
+
+    $('yearlyBody').innerHTML = rows.map(r => `
+      <tr>
+        <td>第 ${r.year} 年</td>
+        <td>${fmtMoney(r.invested)}</td>
+        <td>${fmtMoney(r.assets)}</td>
+        <td class="${r.gain >= 0 ? 'gain-pos' : 'gain-neg'}">${fmtMoney(r.gain)}</td>
+        <td class="${r.gain >= 0 ? 'gain-pos' : 'gain-neg'}">${fmtPct(r.roi)}</td>
+      </tr>
+    `).join('');
+  }
+
+  FIELDS.forEach(f => $(f).addEventListener('input', update));
+  update();
+})();
+</script>
+<button id="backToTop" aria-label="回到頂部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+(function(){
+  var btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', function(){
+    btn.classList.toggle('show', window.scrollY > 400);
+  });
+})();
+</script>
+</body>
+</html>

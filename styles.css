@@ -47,6 +47,8 @@ body{
 .subbar a{color:var(--text-muted);text-decoration:none;}
 .subbar a:hover{color:var(--accent-strong);text-decoration:underline;}
 .subbar b{color:var(--navy);font-weight:700;}
+.subbar a.here{color:var(--navy);font-weight:700;}
+.subbar a.here:hover{color:var(--accent-strong);}
 
 main{
   max-width:1180px;

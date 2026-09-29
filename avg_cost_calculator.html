@@ -30,7 +30,6 @@
   .lot-actions{margin-top:14px;}
   .tile .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
   .input-wrap input:disabled{background:#eceff1;border-color:#dde3e7;color:#8a98a6;cursor:not-allowed;}
-  #labelBe{top:auto;bottom:calc(100% + 10px);white-space:normal;width:max-content;max-width:100%;}
   .v.profit{color:var(--accent-strong);}
   .v.loss{color:var(--loss);}
   .table-wrap{overflow-x:auto;}
@@ -161,7 +160,7 @@
             <div class="v mono" id="sumRoi">--</div>
           </div>
           <div class="tile wide" id="sumPnlTile">
-            <div class="k">淨損益（以現價全部賣出，已扣買賣手續費與證交稅）</div>
+            <div class="k">淨損益（已扣買賣成本）</div>
             <div class="pnl-compare">
               <div class="pnl-item">
                 <div class="pnl-item-label" id="pnlFullLabel">手續費原價（10 折）</div>
@@ -240,7 +239,7 @@
           </div>
         </div>
         <div class="foot-note">
-          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本，報酬率也以目前折數的淨損益計算；「手續費原價」欄把買進與賣出手續費都改用 10 折重算，「折扣省下差價」= 目前折數淨損益 − 原價淨損益。帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）。「證交稅率」會依商品類型自動帶入；商品類型選「自訂」時才可以自己填寫。
+          每筆買進成本 = 價格 × 股數 + 手續費；加權平均成本 = 總買進成本 ÷ 總股數。手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，每筆分開計算，小數點無條件捨去，未達低消以低消計。證交稅只在賣出時收，小數點無條件捨去。淨損益 = 以現價全部賣出、扣除賣出手續費與證交稅後拿到的錢 − 總買進成本，報酬率也以目前折數的淨損益計算；「手續費原價」欄把買進與賣出手續費都改用 10 折重算，「折扣省下差價」= 目前折數淨損益 − 原價淨損益。帳面損益 = 目前市值 − 總買進成本，未扣賣出成本，方便跟券商 App 對照。損益兩平價則是扣除賣出手續費與證交稅後，全部賣出剛好不賺不賠的最低賣價（以 0.01 元計）；可掛單價則依升降單位往上調整：個股未滿 10 元一跳 0.01、10～50 元 0.05、50～100 元 0.1、100～500 元 0.5、500～1,000 元 1、1,000 元以上 5；ETF 未滿 50 元 0.01、50 元以上 0.05。商品類型選「自訂」時不顯示可掛單價。「證交稅率」會依商品類型自動帶入；商品類型選「自訂」時才可以自己填寫。
         </div>
       </div>
 
@@ -253,11 +252,19 @@
 
           <h3>2.為什麼跟券商 App 顯示的不一樣？</h3>
           <ul>
-            <li>有些券商的均價不含手續費（可對照結果卡的小字）</li>
-            <li>券商顯示的「未實現損益」通常是帳面數字，沒扣賣出手續費與證交稅（可對照「帳面損益」）</li>
+            <li>有些券商的均價不含手續費（可對照「加權平均成本」下方的小字）</li>
+            <li>「未實現損益」各家算法不同：有的已扣預估的賣出手續費與證交稅（接近本頁的「淨損益」），有的沒扣（接近本頁的「帳面損益」）</li>
+            <li>有些券商會把同一天、同一檔股票的成交合併後才算手續費，本頁是每筆分開算，可能差幾元</li>
             <li>除權息（配股、配息）後，有些券商會調整成本</li>
             <li>本頁只處理買進，沒有處理中途賣出一部分的情況</li>
           </ul>
+
+          <h3>3.手續費折扣怎麼給？</h3>
+          <p>有些券商在成交當下就直接打折；有些則是先收原價手續費，之後（例如每月）再把折扣退回帳戶。</p>
+          <p>如果你的券商是後者，對帳單上的成本是用原價手續費計算的，想跟對帳單對照時，把「手續費折數」填 <strong>10</strong> 會比較接近。</p>
+
+          <h3>4.什麼是可掛單價？</h3>
+          <p>台股下單價格要符合「升降單位」，例如 50～100 元的股票一跳是 0.1 元，87.84 元掛不出去，最接近又不虧錢的價格是 87.90 元。本頁會把損益兩平價往上調整到最近的可掛單價格。</p>
         </div>
         <div class="foot-note">
           此工具僅供試算參考，實際成本以券商對帳單為準。
@@ -391,6 +398,26 @@
     return cents / 100;
   }
 
+  function tickCents(cents, type){
+    if(type === 'etf' || type === 'bond') return cents < 5000 ? 1 : 5;
+    if(cents < 1000) return 1;
+    if(cents < 5000) return 5;
+    if(cents < 10000) return 10;
+    if(cents < 50000) return 50;
+    if(cents < 100000) return 100;
+    return 500;
+  }
+  function tradablePrice(bep, type, cost, shares, feeDiscount, minFee, tax){
+    if(bep === null || !(type in TAX_PRESETS)) return null;
+    let cents = Math.round(bep * 100);
+    let t = tickCents(cents, type);
+    cents = Math.ceil(cents / t) * t;
+    while(netSell(cents / 100, shares, feeDiscount, minFee, tax) < cost){
+      cents += tickCents(cents, type);
+    }
+    return cents / 100;
+  }
+
   function renderInsight(d){
     if(!d){
       $('insightBody').innerHTML = '<ul><li>請至少輸入一筆有效的買進價格與股數。</li></ul>';
@@ -405,6 +432,9 @@
     }
     if(d.bep !== null){
       items.push(`損益兩平價 <strong>${fmtPrice(d.bep)}</strong>，比平均成本高 ${(d.bep - d.avg).toFixed(2)} 元，這段差距就是賣出時的手續費與 ${d.taxPct}% 證交稅。`);
+      if(d.tradable !== null && d.tradable !== d.bep){
+        items.push(`依升降單位，實際至少要掛 <strong>${fmtPrice(d.tradable)}</strong> 賣出才不會虧錢。`);
+      }
     }
     if(d.current > 0){
       const gap = (d.current - d.avg) / d.avg * 100;
@@ -432,7 +462,7 @@
     el.style.left = left + 'px';
   }
 
-  function renderGauge(bep, current, taxPct){
+  function renderGauge(bep, current, taxPct, tradable){
     if(bep === null){
       $('gaugeWrap').hidden = true;
       return;
@@ -448,7 +478,8 @@
     const bePct = hasCurrent ? pct(bep) : 50;
     $('gaugeTrack').style.setProperty('--be-pct', bePct + '%');
     $('markerBe').style.left = bePct + '%';
-    $('labelBe').innerHTML = '損益兩平 ' + bep.toFixed(2) + ' 元<span class="lbl-note">（已扣賣出手續費與 ' + taxPct + '% 證交稅・超過才賺錢，低於就賠錢。）</span>';
+    const tradableText = tradable !== null && tradable !== bep ? '・可掛單價 ' + tradable.toFixed(2) + ' 元' : '';
+    $('labelBe').innerHTML = '損益兩平 ' + bep.toFixed(2) + ' 元' + tradableText + '<span class="lbl-note">（已扣賣出手續費與 ' + taxPct + '% 證交稅・超過才賺錢，低於就賠錢。）</span>';
     positionLabel($('labelBe'), bePct);
     $('gaugeTrack').style.marginTop = ($('labelBe').offsetHeight + 16) + 'px';
 
@@ -537,6 +568,7 @@
 
     const tax = taxPct / 100;
     const bep = breakEvenPrice(totalCost, totalShares, feeDiscount, minFee, tax);
+    const tradable = tradablePrice(bep, $('assetType').value, totalCost, totalShares, feeDiscount, minFee, tax);
 
     const current = parseFloat($('currentPrice').value);
     const net = current > 0 ? netSell(current, totalShares, feeDiscount, minFee, tax) - totalCost : 0;
@@ -544,9 +576,9 @@
     renderInsight({
       avg, avgNoFee: totalAmount / totalShares, cost: totalCost, shares: totalShares, count: rows.length,
       firstPrice: prices[0], minPrice: Math.min(...prices), maxPrice: Math.max(...prices),
-      bep, current, net, taxPct
+      bep, tradable, current, net, taxPct
     });
-    renderGauge(bep, current, taxPct);
+    renderGauge(bep, current, taxPct, tradable);
 
     lastResult = { rows, totalShares, totalCost, avg, avgNoFee: totalAmount / totalShares, bep, taxPct, current: null };
 

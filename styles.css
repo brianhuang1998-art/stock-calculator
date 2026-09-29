@@ -347,7 +347,7 @@ label{
   font-weight:600;
   color:var(--text-muted);
 }
-.marker-label.be-label{top:-40px;color:var(--navy);text-align:center;}
+.marker-label.be-label{bottom:calc(100% + 10px);color:var(--navy);text-align:center;white-space:normal;width:max-content;max-width:100%;}
 .marker-label.sell-label{top:16px;}
 .marker-label.sell-label.profit{color:var(--accent-strong);}
 .marker-label.sell-label.loss{color:var(--loss);}

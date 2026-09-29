@@ -14,6 +14,7 @@ function saveStored(key, value){
 const FIELD_IDS = ['buyPrice','sellPrice','shares','feeDiscount','minFee','taxNormalPct','taxDayPct'];
 
 let selectedMode = 'normal';
+let tickType = 'stock';
 
 // Float products like 1000000×0.001425×0.28 come out as 398.99999999999994; the epsilon keeps floor() from dropping 1 元
 function floorMoney(x){
@@ -23,6 +24,39 @@ function floorMoney(x){
 function calcFee(amount, feeDiscount, minFee){
   const fee = floorMoney(amount * FEE_RATE * feeDiscount);
   return Math.max(minFee, fee);
+}
+
+function netSellAt(cents, shares, feeDiscount, minFee, taxRate){
+  const amount = Math.round(cents / 100 * shares);
+  return amount - calcFee(amount, feeDiscount, minFee) - floorMoney(amount * taxRate);
+}
+
+// Lowest price (in 0.01 steps) whose net sale proceeds cover the buy cost; searching instead of a closed-form formula keeps the min fee and floor() rounding exact
+function breakevenPrice(cost, shares, feeDiscount, minFee, taxRate){
+  const keep = 1 - FEE_RATE * feeDiscount - taxRate;
+  if(keep <= 0) return null;
+  const est = Math.max(cost / (shares * keep), (cost + minFee) / (shares * (1 - taxRate)));
+  let cents = Math.max(1, Math.floor((est - 3 / (shares * keep)) * 100) - 1);
+  while(netSellAt(cents, shares, feeDiscount, minFee, taxRate) < cost) cents++;
+  return cents / 100;
+}
+
+function tickCents(cents){
+  if(tickType === 'etf') return cents < 5000 ? 1 : 5;
+  if(cents < 1000) return 1;
+  if(cents < 5000) return 5;
+  if(cents < 10000) return 10;
+  if(cents < 50000) return 50;
+  if(cents < 100000) return 100;
+  return 500;
+}
+
+function tradablePrice(breakeven, cost, shares, feeDiscount, minFee, taxRate){
+  let cents = Math.round(breakeven * 100);
+  const t = tickCents(cents);
+  cents = Math.ceil(cents / t) * t;
+  while(netSellAt(cents, shares, feeDiscount, minFee, taxRate) < cost) cents += tickCents(cents);
+  return cents / 100;
 }
 
 function calculateTrade(buyPrice, sellPrice, shares, taxRate, feeDiscount, minFee){
@@ -38,12 +72,12 @@ function calculateTrade(buyPrice, sellPrice, shares, taxRate, feeDiscount, minFe
   const netPnl = grossProfit - totalCost;
   const roiPct = (netPnl / (buyAmount + buyFee)) * 100;
 
-  const netMultiplier = 1.0 - (FEE_RATE * feeDiscount) - taxRate;
-  const breakeven = (buyAmount + buyFee) / (shares * netMultiplier);
+  const breakeven = breakevenPrice(buyAmount + buyFee, shares, feeDiscount, minFee, taxRate);
+  const tradable = breakeven === null ? null : tradablePrice(breakeven, buyAmount + buyFee, shares, feeDiscount, minFee, taxRate);
 
   return {
     buyAmount, sellAmount, grossProfit, buyFee, sellFee, tax,
-    totalCost, netPnl, roiPct, breakeven: Math.round(breakeven * 100) / 100
+    totalCost, netPnl, roiPct, breakeven, tradable
   };
 }
 
@@ -57,8 +91,18 @@ function renderDetail(el, r){
     <div class="rc-row"><span class="rl">證券交易稅</span><span class="rv mono">${fmtInt(r.tax)} 元</span></div>
     <div class="rc-row"><span class="rl">總交易成本</span><span class="rv mono">${fmtInt(r.totalCost)} 元</span></div>
     <div class="rc-row"><span class="rl">損益兩平點</span><span class="rv mono">${r.breakeven.toFixed(2)} 元</span></div>
+    <div class="rc-row"><span class="rl">可掛單兩平價</span><span class="rv mono">${r.tradable.toFixed(2)} 元</span></div>
     <div class="rc-row total"><span class="rl">淨損益</span><span class="rv mono ${r.netPnl >= 0 ? 'profit' : 'loss'}">${fmtSigned(r.netPnl)} 元 (${r.roiPct >= 0 ? '+' : ''}${r.roiPct.toFixed(2)}%)</span></div>
   `;
+}
+
+function clearResults(){
+  ['sumGross','sumCost','sumRoi'].forEach(id => { $(id).textContent = '--'; });
+  ['sumPnl','sumPnlFull','sumPnlDiff'].forEach(id => { $(id).textContent = '--'; $(id).style.color = ''; });
+  $('detailNormal').innerHTML = '';
+  $('detailDay').innerHTML = '';
+  $('gaugeTrack').parentElement.hidden = true;
+  $('insightBody').innerHTML = '<p>請輸入有效的數值：買進價、賣出價與股數需大於 0，手續費折數、低消與證交稅率不可為負數。</p>';
 }
 
 function updateCalculator(){
@@ -70,7 +114,11 @@ function updateCalculator(){
   const taxNormalPct = parseFloat($('taxNormalPct').value);
   const taxDayPct = parseFloat($('taxDayPct').value);
 
-  if(!isFinite(buyPrice) || !isFinite(sellPrice) || !shares || shares <= 0 || !isFinite(feeDiscount) || !isFinite(minFee) || !isFinite(taxNormalPct) || !isFinite(taxDayPct)){
+  const valid = buyPrice > 0 && sellPrice > 0 && shares > 0
+    && feeDiscount >= 0 && minFee >= 0
+    && taxNormalPct >= 0 && taxNormalPct < 100 && taxDayPct >= 0 && taxDayPct < 100;
+  if(!valid){
+    clearResults();
     return;
   }
 
@@ -83,6 +131,11 @@ function updateCalculator(){
   const rDay = calculateTrade(buyPrice, sellPrice, shares, taxDayPct / 100, feeDiscount, minFee);
   const rNormalFull = calculateTrade(buyPrice, sellPrice, shares, taxNormalPct / 100, 1.0, minFee);
   const rDayFull = calculateTrade(buyPrice, sellPrice, shares, taxDayPct / 100, 1.0, minFee);
+  if([rNormal, rDay, rNormalFull, rDayFull].some(r => r.breakeven === null)){
+    clearResults();
+    return;
+  }
+  $('gaugeTrack').parentElement.hidden = false;
 
   renderDetail($('detailNormal'), rNormalFull);
   renderDetail($('detailDay'), rDayFull);
@@ -118,26 +171,27 @@ function updateCalculator(){
   const sellPct = pct(sellPrice);
   $('gaugeTrack').style.setProperty('--be-pct', bePct + '%');
 
+  // Keep each label fully inside the track instead of letting a long label spill past the card edge
   function positionLabel(el, p){
-    el.style.left = p + '%';
-    if(p < 12){
-      el.style.transform = 'translateX(0%)';
-    } else if(p > 88){
-      el.style.transform = 'translateX(-100%)';
-    } else {
-      el.style.transform = 'translateX(-50%)';
-    }
+    const trackW = $('gaugeTrack').clientWidth;
+    el.style.transform = 'none';
+    el.style.left = '0px';
+    const w = el.offsetWidth;
+    el.style.left = Math.max(0, Math.min(trackW - w, p / 100 * trackW - w / 2)) + 'px';
   }
 
   const mBe = $('markerBe'), lBe = $('labelBe'), mSell = $('markerSell'), lSell = $('labelSell');
   mBe.style.left = bePct + '%';
+  const tradableText = selFull.tradable !== selFull.breakeven ? '・可掛單 ' + selFull.tradable.toFixed(2) + ' 元' : '';
+  lBe.innerHTML = '損益兩平 ' + selFull.breakeven.toFixed(2) + ' 元' + tradableText + '<span class="lbl-note">（手續費原價下・超過才賺錢，低於就賠錢。）</span>';
   positionLabel(lBe, bePct);
-  lBe.innerHTML = '損益兩平 ' + selFull.breakeven.toFixed(2) + ' 元<span class="lbl-note">（手續費原價下・超過才賺錢，低於就賠錢。）</span>';
+  $('gaugeTrack').style.marginTop = (lBe.offsetHeight + 16) + 'px';
 
   mSell.style.left = sellPct + '%';
-  positionLabel(lSell, sellPct);
   lSell.textContent = '賣出價 ' + sellPrice.toFixed(2) + ' 元';
-  const isProfit = sellPrice >= selFull.breakeven;
+  positionLabel(lSell, sellPct);
+  // Color by the actual net result so the gauge can never disagree with the net P&L shown elsewhere
+  const isProfit = selFull.netPnl >= 0;
   mSell.classList.toggle('loss', !isProfit);
   lSell.classList.toggle('profit', isProfit);
   lSell.classList.toggle('loss', !isProfit);
@@ -163,8 +217,12 @@ function updateCalculator(){
   const moveLine = diff >= 0
     ? `賣出價目前領先損益兩平價 <strong>${diffPct.toFixed(2)}%</strong>，可承受賣出價下跌到這個幅度內仍不會虧錢。`
     : `賣出價需再上漲 <strong class="neg">${Math.abs(diffPct).toFixed(2)}%</strong> 才會到達損益兩平點。`;
+  const tradableLine = selFull.tradable !== selFull.breakeven
+    ? `<li>依升降單位，實際至少要掛 <strong>${selFull.tradable.toFixed(2)}</strong> 元賣出才不會虧錢（手續費原價）。</li>`
+    : '';
   html += `<ul>
     <li>${moveLine}</li>
+    ${tradableLine}
     <li>${compareLine}</li>
   </ul>`;
   $('insightBody').innerHTML = html;
@@ -227,6 +285,8 @@ function applyTaxPreset(normal, day, note){
 }
 
 function initCalculator(opts){
+  if(opts.tickType) tickType = opts.tickType;
+  window.addEventListener('resize', updateCalculator);
   const hadSavedTax = loadStored('taxNormalPct') !== null;
 
   FIELD_IDS.forEach(id=>{

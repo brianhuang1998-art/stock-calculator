@@ -6,6 +6,11 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE0IiBmaWxsPSIjMDBlNmEwIi8+Cjx0ZXh0IHg9IjMyIiB5PSI0OSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzAwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD4KPC9zdmc+Cg==">
 <title>個股試算</title>
 <link rel="stylesheet" href="styles.css">
+<style>
+  .assume h3{font-size:14px;color:var(--navy);margin:20px 0 6px;}
+  .assume h3:first-child{margin-top:0;}
+  .assume p{margin:0 0 6px;}
+</style>
 </head>
 <body>
 
@@ -173,7 +178,30 @@
           </div>
         </div>
         <div class="foot-note">
-          手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，例如輸入 6 代表 6 折、10 代表原價無折扣；未達低消以低消計，小數點無條件捨去。損益兩平價為使賣出淨得等於買進總成本的最低賣價。「證交稅率」欄位可依實際情況手動調整。
+          手續費 = 成交金額 × 0.1425% × (折數 ÷ 10)，例如輸入 6 代表 6 折、10 代表原價無折扣；未達低消以低消計，小數點無條件捨去。損益兩平價為使賣出淨得等於買進總成本的最低賣價（以 0.01 元計，已含低消與捨去的影響）；可掛單兩平價再依升降單位往上調整。「證交稅率」欄位可依實際情況手動調整。
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>觀念說明</h2>
+        <div class="insight assume">
+          <h3>1.什麼是損益兩平價？</h3>
+          <p>賣出後扣掉買進手續費、賣出手續費與證交稅，剛好不賺不賠的最低賣價，所以一定會比買進價高一點。</p>
+          <p>例如 35.50 元買 1 張（手續費原價），要賣到 <strong>35.71 元</strong>以上才不會虧錢。</p>
+
+          <h3>2.什麼是可掛單價？</h3>
+          <p>台股下單價格要符合「升降單位」：未滿 10 元一跳 0.01 元、10～50 元 0.05 元、50～100 元 0.1 元、100～500 元 0.5 元、500～1,000 元 1 元、1,000 元以上 5 元。</p>
+          <p>上例的 35.71 元掛不出去，最接近又不虧錢的價格是 <strong>35.75 元</strong>。</p>
+
+          <h3>3.為什麼現股當沖稅率比較低？</h3>
+          <p>同一天買進又賣出同一檔股票叫「現股當沖」。政府為了增加市場成交量，把當沖的證交稅從 0.3% 減半為 0.15%。這是有期限的優惠措施，到期後是否延長要留意政府公告。</p>
+
+          <h3>4.手續費折扣怎麼給？</h3>
+          <p>有些券商在成交當下就直接打折；有些則是先收原價手續費，之後（例如每月）再把折扣退回帳戶。後者的對帳單是用原價計算，想對照時把「手續費折數」填 <strong>10</strong>。</p>
+
+          <h3>5.零股與手續費低消</h3>
+          <p>零股（未滿 1,000 股）交易金額小，手續費常常不到低消，會被墊高到低消金額。例如 35.50 元買 100 股（原價、低消 20 元），損益兩平價是 <strong>36.00 元</strong>，比買 1 張時的 35.71 元高不少。</p>
+          <p>很多券商零股的低消比較低（例如 1 元），請把「單筆手續費低消」改成你券商的規定。</p>
         </div>
       </div>
     </div>
@@ -182,7 +210,7 @@
 
 <script src="calc.js"></script>
 <script>
-  initCalculator({ taxNormal: 0.3, taxDay: 0.15, note: '個股：一般交易稅率 0.3%，現股當沖減半為 0.15%。' });
+  initCalculator({ taxNormal: 0.3, taxDay: 0.15, note: '個股：一般交易稅率 0.3%，現股當沖減半為 0.15%。', tickType: 'stock' });
 </script>
 <button id="backToTop" aria-label="回到頂部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 <script>

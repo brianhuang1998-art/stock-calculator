@@ -28,6 +28,22 @@
   .dca-table tr:last-child td{border-bottom:none;}
   .dca-table td.gain-pos{color:var(--accent-strong);font-weight:600;}
   .dca-table td.gain-neg{color:var(--loss);font-weight:600;}
+  .assume h3{
+    font-size:14px;
+    color:var(--navy);
+    margin:20px 0 6px;
+  }
+  .assume h3:first-child{margin-top:0;}
+  .assume p{margin:0 0 6px;}
+  .assume .rate-list{margin:10px 0 8px;}
+  .formula{
+    display:inline-block;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:4px 10px;
+    font-variant-numeric:tabular-nums;
+  }
 </style>
 </head>
 <body>
@@ -44,89 +60,129 @@
   <h1>定期定額複利試算</h1>
   <p class="subtitle">輸入本金、每月扣款金額與預期年化報酬率，試算長期累積資產與總報酬</p>
 
-  <div class="card">
-    <h2>試算參數</h2>
-    <div class="field-grid">
-      <div>
-        <label for="principal">期初本金</label>
-        <div class="input-wrap">
-          <input type="number" id="principal" inputmode="decimal" step="1000" value="0" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
-          <span class="unit">元</span>
-        </div>
-      </div>
-      <div>
-        <label for="monthlyContribution">每月扣款金額</label>
-        <div class="input-wrap">
-          <input type="number" id="monthlyContribution" inputmode="decimal" step="500" value="5000" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
-          <span class="unit">元</span>
-        </div>
-      </div>
-      <div>
-        <label for="annualRate">預期年化報酬率</label>
-        <div class="input-wrap">
-          <input type="number" id="annualRate" inputmode="decimal" step="0.5" value="7" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
-          <span class="unit">%</span>
-        </div>
-      </div>
-      <div>
-        <label for="years">投資年數</label>
-        <div class="input-wrap">
-          <input type="number" id="years" inputmode="numeric" step="1" value="20" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
-          <span class="unit">年</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>試算結果</h2>
-    <div class="tiles">
-      <div class="tile">
-        <div class="k">累積投入本金</div>
-        <div class="v mono" id="sumInvested">--</div>
-      </div>
-      <div class="tile">
-        <div class="k">期末預估資產</div>
-        <div class="v mono" id="sumFinal">--</div>
-      </div>
-      <div class="tile wide">
-        <div class="k">累積報酬</div>
-        <div class="pnl-compare">
-          <div class="pnl-item">
-            <div class="pnl-item-label">報酬金額</div>
-            <div class="v mono" id="sumGain">--</div>
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h2>試算參數</h2>
+        <div class="field-grid">
+          <div>
+            <label for="principal">期初本金</label>
+            <div class="input-wrap">
+              <input type="number" id="principal" inputmode="decimal" step="1000" value="0" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <span class="unit">元</span>
+            </div>
           </div>
-          <div class="pnl-item">
-            <div class="pnl-item-label">報酬率 ROI</div>
-            <div class="v mono" id="sumRoi">--</div>
+          <div>
+            <label for="monthlyContribution">每月扣款金額</label>
+            <div class="input-wrap">
+              <input type="number" id="monthlyContribution" inputmode="decimal" step="500" value="5000" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <span class="unit">元</span>
+            </div>
+          </div>
+          <div>
+            <label for="annualRate">預期年化報酬率</label>
+            <div class="input-wrap">
+              <input type="number" id="annualRate" inputmode="decimal" step="0.5" value="7" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div>
+            <label for="years">投資年數</label>
+            <div class="input-wrap">
+              <input type="number" id="years" inputmode="numeric" step="1" value="20" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
+              <span class="unit">年</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="card">
-    <h2>逐年明細</h2>
-    <div class="table-wrap">
-      <table class="dca-table">
-        <thead>
-          <tr>
-            <th>年度</th>
-            <th>累積投入本金</th>
-            <th>期末資產</th>
-            <th>累積報酬</th>
-            <th>報酬率</th>
-          </tr>
-        </thead>
-        <tbody id="yearlyBody"></tbody>
-      </table>
-    </div>
-  </div>
+      <div class="card">
+        <h2>試算結果</h2>
+        <div class="tiles">
+          <div class="tile">
+            <div class="k">累積投入本金</div>
+            <div class="v mono" id="sumInvested">--</div>
+          </div>
+          <div class="tile">
+            <div class="k">期末預估資產</div>
+            <div class="v mono" id="sumFinal">--</div>
+          </div>
+          <div class="tile wide">
+            <div class="k">累積報酬</div>
+            <div class="pnl-compare">
+              <div class="pnl-item">
+                <div class="pnl-item-label">報酬金額</div>
+                <div class="v mono" id="sumGain">--</div>
+              </div>
+              <div class="pnl-item">
+                <div class="pnl-item-label">報酬率 ROI</div>
+                <div class="v mono" id="sumRoi">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>計算假設</h2>
-    <div class="foot-note">
-      每月扣款於月底計入，並以「年化報酬率換算的月複利」成長（月報酬率 = (1+年化報酬率)^(1/12) − 1）；期初本金與每月扣款都採相同報酬率成長。此工具僅為試算規劃參考，不代表實際投資報酬，市場實際報酬會隨時間波動。
+      <div class="card">
+        <h2>逐年明細</h2>
+        <div class="table-wrap">
+          <table class="dca-table">
+            <thead>
+              <tr>
+                <th>年度</th>
+                <th>累積投入本金</th>
+                <th>期末資產</th>
+                <th>累積報酬</th>
+                <th>報酬率</th>
+              </tr>
+            </thead>
+            <tbody id="yearlyBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>計算假設</h2>
+        <div class="insight assume">
+          <h3>什麼是定期定額？</h3>
+          <p>每個月固定拿一筆錢（例如 5,000 元）買同一檔基金或 ETF，不管當時漲跌都照買。好處是不用挑進場時機，時間拉長後能靠<strong>複利</strong>讓資產成長：前面賺到的報酬會繼續投入、再產生報酬。</p>
+
+          <h3>月報酬率怎麼換算？</h3>
+          <p>本頁把年化報酬率換算成「每月複利 12 次剛好等於年化」的月報酬率：</p>
+          <p><span class="formula">月報酬率 = (1 + 年化報酬率)<sup>1/12</sup> − 1</span></p>
+          <p>例如年化 7% → 每月約 0.565%。不少網站直接用 7% ÷ 12 ≈ 0.583%，但這樣一年實際會變成約 7.23%，算出來的結果會偏高。</p>
+
+          <h3>月初或月底扣款？</h3>
+          <p>本頁假設<strong>月底扣款</strong>。月初扣款的錢會多滾一個月的報酬，結果會稍微高一點，所以月底扣款算出來比較保守。</p>
+
+          <h3>報酬率填多少？</h3>
+          <p>這是影響結果最大、也最不確定的參數，是你自己的假設，沒有人能保證。</p>
+          <div class="rate-list">
+            <div class="rate-item">
+              <span class="rk">長期股票型 ETF</span>
+              <span class="rv">約 5–8%</span>
+            </div>
+            <div class="rate-item">
+              <span class="rk">債券型 ETF</span>
+              <span class="rv">更低</span>
+            </div>
+          </div>
+          <p>建議多試幾個數字（例如 4%、6%、8%），看看結果差多少。</p>
+
+          <h3>一般沒算進去、但實際會影響結果的東西</h3>
+          <ul>
+            <li><strong class="neg">手續費、ETF 內扣管理費</strong>：每年大約吃掉 0.1–1% 報酬</li>
+            <li><strong class="neg">通貨膨脹</strong>：20 年後的 100 萬，購買力比現在的 100 萬低</li>
+            <li><strong class="neg">市場波動</strong>：試算假設每年都穩定成長，實際會有大漲大跌的年份，結果可能差很多</li>
+          </ul>
+        </div>
+        <div class="foot-note">
+          期初本金與每月扣款都以相同報酬率成長。此工具僅供試算規劃參考，不代表實際投資報酬。
+        </div>
+      </div>
     </div>
   </div>
 </main>

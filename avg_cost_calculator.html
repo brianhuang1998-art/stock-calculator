@@ -577,16 +577,10 @@
 
   function buildResultText(){
     const r = lastResult;
-    const typeName = $('assetType').options[$('assetType').selectedIndex].text;
     const lines = ['【加權平均成本試算結果】'];
     r.rows.forEach(x => lines.push(`第 ${x.idx} 筆：${x.price.toFixed(2)} 元 × ${x.shares.toLocaleString('zh-Hant-TW')} 股`));
     lines.push(`總持有股數：${r.totalShares.toLocaleString('zh-Hant-TW')} 股`);
-    lines.push(`總買進成本（含手續費，${$('feeDiscount').value} 折）：${fmtMoney(r.totalCost)}`);
-    lines.push(`加權平均成本：${fmtPrice(r.avg)}（不含手續費 ${fmtPrice(r.avgNoFee)}）`);
-    if(r.bep !== null) lines.push(`損益兩平價：${fmtPrice(r.bep)}（${typeName}，證交稅 ${r.taxPct}%）`);
     if(r.current !== null){
-      lines.push(`目前股價：${fmtPrice(r.current)}　目前市值：${fmtMoney(r.market)}`);
-      lines.push(`帳面損益（未扣賣出成本）：${fmtSigned(r.bookPnl)}`);
       lines.push(`淨損益（手續費原價）：${fmtSigned(r.netFull)}`);
       lines.push(`淨損益（目前 ${$('feeDiscount').value} 折）：${fmtSigned(r.net)}`);
       lines.push(`折扣省下差價：${fmtSigned(r.savings)}`);

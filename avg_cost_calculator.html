@@ -579,7 +579,6 @@
       lines.push(`淨損益（手續費原價）：${fmtSigned(r.netFull)}`);
       lines.push(`淨損益（目前 ${$('feeDiscount').value} 折）：${fmtSigned(r.net)}`);
       lines.push(`折扣省下差價：${fmtSigned(r.savings)}`);
-      lines.push(`報酬率：${fmtPct(r.roi)}`);
     }
     return lines.join('\n');
   }

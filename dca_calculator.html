@@ -28,7 +28,7 @@
   .dca-table tr:last-child td{border-bottom:none;}
   .dca-table td.gain-pos{color:var(--accent-strong);font-weight:600;}
   .dca-table td.gain-neg{color:var(--loss);font-weight:600;}
-  .input-error{margin:14px 0 0;font-size:13px;color:var(--loss);}
+  .input-error{margin:6px 0 0;font-size:12.5px;color:var(--loss);}
   #sumGainTile .k{font-size:18px;}
   #sumGainTile .pnl-compare{grid-template-columns:1fr 1fr;}
   #sumGainTile .pnl-item-label{font-size:16px;}
@@ -79,6 +79,7 @@
               <input type="number" id="principal" inputmode="decimal" step="1000" value="0" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">元</span>
             </div>
+            <p class="input-error" id="err-principal" hidden></p>
           </div>
           <div>
             <label for="monthlyContribution">每月扣款金額（每個月定期定額金額）</label>
@@ -86,6 +87,7 @@
               <input type="number" id="monthlyContribution" inputmode="decimal" step="500" value="5000" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">元</span>
             </div>
+            <p class="input-error" id="err-monthlyContribution" hidden></p>
           </div>
           <div>
             <label for="annualRate">預期年化報酬率</label>
@@ -93,6 +95,7 @@
               <input type="number" id="annualRate" inputmode="decimal" step="0.5" value="7" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">%</span>
             </div>
+            <p class="input-error" id="err-annualRate" hidden></p>
           </div>
           <div>
             <label for="years">投資年數</label>
@@ -100,9 +103,9 @@
               <input type="number" id="years" inputmode="numeric" step="1" value="20" onfocus="setTimeout(function(t){t.select();},1,this)" onclick="setTimeout(function(t){t.select();},1,this)">
               <span class="unit">年</span>
             </div>
+            <p class="input-error" id="err-years" hidden></p>
           </div>
         </div>
-        <p class="input-error" id="inputError" hidden></p>
       </div>
 
       <div class="card">
@@ -232,11 +235,13 @@
   const MAX_YEARS = 100;
 
   function validate(principal, monthly, annualRatePct, years){
-    if(principal < 0 || monthly < 0) return '期初本金與每月扣款金額不可為負數。';
-    if(!isFinite(annualRatePct)) return '請輸入預期年化報酬率。';
-    if(annualRatePct < -100) return '年化報酬率不可低於 -100%（最多就是虧光本金）。';
-    if(!Number.isInteger(years) || years < 1 || years > MAX_YEARS) return `投資年數請輸入 1～${MAX_YEARS} 的整數。`;
-    return '';
+    const errors = {};
+    if(principal < 0) errors.principal = '期初本金不可為負數。';
+    if(monthly < 0) errors.monthlyContribution = '每月扣款金額不可為負數。';
+    if(!isFinite(annualRatePct)) errors.annualRate = '請輸入預期年化報酬率。';
+    else if(annualRatePct < -100) errors.annualRate = '年化報酬率不可低於 -100%（最多就是虧光本金）。';
+    if(!Number.isInteger(years) || years < 1 || years > MAX_YEARS) errors.years = `投資年數請輸入 1～${MAX_YEARS} 的整數。`;
+    return errors;
   }
 
   function setSign(el, n){
@@ -252,10 +257,12 @@
     const annualRatePct = parseFloat($('annualRate').value);
     const years = Number($('years').value);
 
-    const error = validate(principal, monthly, annualRatePct, years);
-    $('inputError').textContent = error;
-    $('inputError').hidden = !error;
-    if(error){
+    const errors = validate(principal, monthly, annualRatePct, years);
+    FIELDS.forEach(f => {
+      $('err-' + f).textContent = errors[f] || '';
+      $('err-' + f).hidden = !errors[f];
+    });
+    if(Object.keys(errors).length){
       $('sumInvested').textContent = '--';
       $('sumFinal').textContent = '--';
       $('sumGain').textContent = '--';
